@@ -1,0 +1,144 @@
+{
+    "_version": "1.40.0",
+
+    "sap.app": {
+        "id": "zitsm",
+        "type": "application",
+        "title": "ITSM Incident Management",
+        "applicationVersion": {
+            "version": "1.0.0"
+        },
+        "dataSources": {
+            "mainService": {
+                "uri": "/sap/opu/odata/SAP/ZITSM_SRV_SRV/",
+                "type": "OData",
+                "settings": {
+                    "odataVersion": "2.0"
+                }
+            }
+        }
+    },
+
+    "sap.ui": {
+        "technology": "UI5",
+        "deviceTypes": {
+            "desktop": true,
+            "tablet": true,
+            "phone": true
+        }
+    },
+
+    "sap.ui5": {
+        "rootView": {
+            "viewName": "zitsm.view.App",
+            "type": "XML",
+            "id": "app"
+        },
+
+        "dependencies": {
+            "minUI5Version": "1.120.0",
+            "libs": {
+                "sap.m": {},
+                "sap.ui.core": {},
+                "sap.viz": {},
+                "sap.ui.unified": {}
+            }
+        },
+
+        "models": {
+            "i18n": {
+                "type": "sap.ui.model.resource.ResourceModel",
+                "settings": {
+                    "bundleName": "zitsm.i18n.i18n"
+                }
+            },
+            "incidents": {
+                "dataSource": "mainService",
+                "settings": {
+                    "defaultBindingMode": "TwoWay",
+                    "useBatch": false
+                }
+            },
+            "users": {
+                "type": "sap.ui.model.json.JSONModel",
+                "uri": "model/users.json"
+            }
+        },
+
+        "resources": {
+            "css": [
+                {
+                    "uri": "css/style.css"
+                }
+            ]
+        },
+
+        "routing": {
+            "config": {
+                "routerClass": "sap.m.routing.Router",
+                "viewType": "XML",
+                "viewPath": "zitsm.view",
+                "controlId": "app",
+                "controlAggregation": "pages"
+            },
+            "routes": [
+                {
+                    "name": "list",
+                    "pattern": "",
+                    "target": "list"
+                },
+                {
+                    "name": "detail",
+                    "pattern": "detail/{incidentNo}",
+                    "target": "detail"
+                },
+                {
+                    "name": "create",
+                    "pattern": "create",
+                    "target": "create"
+                },
+                {
+                    "name": "chat",
+                    "pattern": "chat",
+                    "target": "chat"
+                },
+                {
+                    "name": "overview",
+                    "pattern": "overview",
+                    "target": "overview"
+                },
+                {
+                    "name": "kb",
+                    "pattern": "kb",
+                    "target": "kb"
+                }
+            ],
+            "targets": {
+                "list": {
+                    "viewName": "IncidentList",
+                    "viewId": "list"
+                },
+                "detail": {
+                    "viewName": "IncidentDetail",
+                    "viewId": "detail"
+                },
+                "create": {
+                    "viewName": "IncidentCreate",
+                    "viewId": "create"
+                },
+                "chat": {
+                    "viewName": "Chat",
+                    "viewId": "chat"
+                },
+                "overview": {
+                    "viewName": "Overview",
+                    "viewId": "overview"
+                },
+                "kb": {
+                    "viewName": "KnowledgeBase",
+                    "viewId": "kb"
+                }
+            }
+        }
+    }
+}

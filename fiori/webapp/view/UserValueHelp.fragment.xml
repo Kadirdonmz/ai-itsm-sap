@@ -1,0 +1,20 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+
+    <SelectDialog
+        title="Kullanıcı Seç"
+        search="onUserSearch"
+        liveChange="onUserSearch"
+        confirm="onUserConfirm"
+        cancel="onUserCancel"
+        items="{users>/Users}">
+
+        <StandardListItem
+            title="{users>Username}"
+            description="{users>Email}"
+            type="Active"/>
+
+    </SelectDialog>
+
+</core:FragmentDefinition>

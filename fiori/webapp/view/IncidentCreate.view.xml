@@ -1,0 +1,118 @@
+<mvc:View
+    controllerName="zitsm.controller.IncidentCreate"
+    xmlns="sap.m"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns:f="sap.ui.layout.form"
+    xmlns:u="sap.ui.unified"
+    xmlns:core="sap.ui.core">
+
+    <Page
+        title="{i18n>createTitle}"
+        showNavButton="true"
+        navButtonPress="onCancelPress">
+
+        <headerContent>
+            <Button
+                text="{i18n>btnSave}"
+                icon="sap-icon://save"
+                type="Emphasized"
+                press="onSavePress"/>
+        </headerContent>
+
+        <content>
+            <f:SimpleForm layout="ResponsiveGridLayout">
+                <f:content>
+
+                    <Label text="{i18n>lblTitle}" required="true"/>
+                    <VBox>
+                        <Input value="{new>/Title}" change="onTitleChange"/>
+                        <Text
+                            text="✨ Başlık AI tarafından önerildi (değiştirebilirsiniz)"
+                            visible="{= ${new>/TitleFromAI} === true }"
+                            class="sapUiTinyMarginTop">
+                            <layoutData>
+                                <FlexItemData growFactor="1"/>
+                            </layoutData>
+                        </Text>
+                    </VBox>
+
+                    <Label text="{i18n>lblDescription}" required="true"/>
+                    <TextArea value="{new>/Description}" rows="3"/>
+
+                    <Label text="Doküman (PDF, opsiyonel)"/>
+                    <u:FileUploader
+                        id="aiFileUploader"
+                        name="aiDocument"
+                        fileType="pdf"
+                        placeholder="Analiz için bir PDF seçin (opsiyonel)"
+                        change="onAiFileSelected"/>
+
+                    <Label text=""/>
+                    <Button
+                        text="AI ile Analiz Et ve Öner"
+                        icon="sap-icon://ai"
+                        press="onAiSuggest"/>
+
+                    <Label text="{i18n>lblPriority}" required="true"/>
+                    <VBox>
+                        <Select selectedKey="{new>/Priority}" change="onPriorityChange">
+                            <core:Item key="" text="{i18n>selectPlaceholder}"/>
+                            <core:Item key="L" text="Low"/>
+                            <core:Item key="M" text="Medium"/>
+                            <core:Item key="H" text="High"/>
+                        </Select>
+                        <Text
+                            text="✨ Öncelik AI tarafından önerildi (değiştirebilirsiniz)"
+                            visible="{= ${new>/PriorityFromAI} === true }"
+                            class="sapUiTinyMarginTop"/>
+                    </VBox>
+
+                    <Label text="Etki"/>
+                    <Select selectedKey="{new>/Impact}">
+                        <core:Item key="" text="Belirtilmemiş"/>
+                        <core:Item key="L" text="Düşük – tek kullanıcı / geçici çözüm var"/>
+                        <core:Item key="M" text="Orta – bir ekip veya süreç etkileniyor"/>
+                        <core:Item key="H" text="Yüksek – birden fazla birim / iş kesintisi"/>
+                    </Select>
+
+                    <Label text="Talep Türü"/>
+                    <Select selectedKey="{new>/RequestType}">
+                        <core:Item key="" text="Belirtilmemiş"/>
+                        <core:Item key="incident" text="Arıza"/>
+                        <core:Item key="request" text="Talep"/>
+                    </Select>
+
+                    <Label text="Kategori"/>
+                    <!-- Categories come from ZITSM_CATEGORY (SM30) -->
+                    <ComboBox
+                        selectedKey="{new>/Category}"
+                        items="{path: 'incidents>/CategorySet', sorter: {path: 'CategoryName'}}"
+                        selectionChange="onCategoryChange"
+                        placeholder="Kategori seçin">
+                        <core:Item key="{incidents>CategoryName}" text="{incidents>CategoryName}"/>
+                    </ComboBox>
+
+                    <Label text="Destek Grubu"/>
+                    <Input value="{new>/SupportGroup}" placeholder="Kategori seçilince varsayılan grup gelir"/>
+
+                    <Label text="{i18n>lblAssignedTo}"/>
+                    <Input
+                        value="{new>/AssignedTo}"
+                        showValueHelp="true"
+                        valueHelpRequest="onValueHelpRequest"/>
+
+                    <Label text="AI önerisini değiştirdiyseniz nedeni" visible="{new>/AiUsed}"/>
+                    <TextArea
+                        value="{new>/Feedback}"
+                        visible="{new>/AiUsed}"
+                        rows="2"
+                        maxLength="255"
+                        placeholder="İsteğe bağlı. Örn. Ay sonu kapanışını etkilediği için önceliği yükselttim."/>
+
+                </f:content>
+            </f:SimpleForm>
+        </content>
+
+    </Page>
+
+</mvc:View>

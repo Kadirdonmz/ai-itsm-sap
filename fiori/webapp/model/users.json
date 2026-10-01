@@ -1,0 +1,7 @@
+{
+    "Users": [
+        { "Username": "DEVELOPER",  "Email": "developer@example.com" },
+        { "Username": "DEVELOPER1", "Email": "developer1@example.com" },
+        { "Username": "TESTUSER",   "Email": "testuser@example.com" }
+    ]
+}

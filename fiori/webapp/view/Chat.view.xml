@@ -1,0 +1,137 @@
+<mvc:View
+    controllerName="zitsm.controller.Chat"
+    xmlns="sap.m"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns:core="sap.ui.core">
+
+    <Page id="chatPage" enableScrolling="false">
+
+        <customHeader>
+            <Bar class="chatHeader">
+                <contentLeft>
+                    <Button
+                        icon="sap-icon://nav-back"
+                        type="Transparent"
+                        tooltip="Listeye dön"
+                        press="onNavBack"/>
+                    <core:Icon src="sap-icon://ai" class="chatHeaderIcon sapUiTinyMarginBegin"/>
+                    <Text text="AI Destek Asistanı" class="chatHeaderTitle sapUiSmallMarginBegin"/>
+                </contentLeft>
+                <contentRight>
+                    <Button
+                        text="Sorun Çözüldü"
+                        icon="sap-icon://accept"
+                        type="Transparent"
+                        tooltip="AI önerisiyle sorun çözüldü, çağrı açılmasına gerek yok"
+                        enabled="{= ${chat>/messages}.length > 0 }"
+                        press="onResolvedPress"/>
+                    <Button
+                        text="Çağrı Oluştur"
+                        icon="sap-icon://add-document"
+                        type="Emphasized"
+                        tooltip="Sorun çözülmedi: sohbetten otomatik destek çağrısı oluştur"
+                        enabled="{= ${chat>/messages}.length > 0 }"
+                        press="onConvertPress"/>
+                </contentRight>
+            </Bar>
+        </customHeader>
+
+        <content>
+            <ScrollContainer
+                id="chatScroll"
+                height="100%"
+                width="100%"
+                vertical="true"
+                horizontal="false"
+                class="chatScroll">
+
+                <VBox class="chatInner">
+
+                    <!-- Welcome state, shown while the chat is empty -->
+                    <VBox
+                        class="chatWelcome"
+                        alignItems="Center"
+                        visible="{= ${chat>/messages}.length === 0 }">
+                        <core:Icon src="sap-icon://ai" class="chatWelcomeIcon"/>
+                        <Title
+                            text="Size nasıl yardımcı olabilirim?"
+                            level="H3"
+                            class="sapUiSmallMarginTop"/>
+                        <Text
+                            text="Sorununuzu ya da talebinizi kendi cümlelerinizle yazın. Kurum bilgi bankasından çözüm önereceğim; sorun çözülmezse bu sohbetten tek tıkla destek çağrısı oluşturabilirsiniz."
+                            textAlign="Center"
+                            class="chatWelcomeText"/>
+                        <HBox wrap="Wrap" justifyContent="Center" class="sapUiSmallMarginTop">
+                            <Button text="VPN bağlantım sürekli kopuyor" class="chatChip" press="onSuggestionPress"/>
+                            <Button text="SAP'ye giriş yapamıyorum" class="chatChip" press="onSuggestionPress"/>
+                            <Button text="Yazıcım çıktı vermiyor" class="chatChip" press="onSuggestionPress"/>
+                            <Button text="Yeni bir geliştirme talebim var" class="chatChip" press="onSuggestionPress"/>
+                        </HBox>
+                    </VBox>
+
+                    <VBox items="{chat>/messages}">
+                        <items>
+                            <HBox
+                                class="chatRow"
+                                alignItems="End"
+                                justifyContent="{= ${chat>Sender} === 'U' ? 'End' : 'Start' }">
+                                <core:Icon
+                                    src="sap-icon://ai"
+                                    class="chatAvatar"
+                                    visible="{= ${chat>Sender} !== 'U' }"/>
+                                <VBox class="chatBubbleUser" visible="{= ${chat>Sender} === 'U' }">
+                                    <Text text="{chat>MsgText}" class="chatText"/>
+                                    <Text text="{chat>Time}" class="chatTime" width="100%"/>
+                                </VBox>
+                                <VBox class="chatBubbleAi" visible="{= ${chat>Sender} !== 'U' }">
+                                    <Text text="{chat>MsgText}" class="chatText"/>
+                                    <!-- FR-02: KB sources used for the answer -->
+                                    <HBox
+                                        class="chatSource"
+                                        alignItems="Start"
+                                        visible="{= !!${chat>Sources} }">
+                                        <core:Icon src="sap-icon://course-book" class="chatSourceIcon"/>
+                                        <Text text="{chat>Sources}" class="chatSourceText"/>
+                                    </HBox>
+                                    <Text text="{chat>Time}" class="chatTime" width="100%"/>
+                                </VBox>
+                            </HBox>
+                        </items>
+                    </VBox>
+
+                    <!-- Typing indicator -->
+                    <HBox class="chatRow" alignItems="End" visible="{chat>/loading}">
+                        <core:Icon src="sap-icon://ai" class="chatAvatar"/>
+                        <HBox class="chatBubbleAi chatTyping">
+                            <BusyIndicator size="0.9rem" class="sapUiTinyMarginEnd"/>
+                            <Text text="Asistan yazıyor…"/>
+                        </HBox>
+                    </HBox>
+
+                </VBox>
+            </ScrollContainer>
+        </content>
+
+        <footer>
+            <Toolbar class="chatFooter">
+                <Input
+                    id="chatInput"
+                    width="100%"
+                    placeholder="Mesajınızı yazın ve Enter'a basın…"
+                    value="{chat>/draft}"
+                    valueLiveUpdate="true"
+                    enabled="{= !${chat>/loading} }"
+                    submit="onSendPress"
+                    class="chatInput"/>
+                <Button
+                    icon="sap-icon://paper-plane"
+                    type="Emphasized"
+                    tooltip="Gönder"
+                    enabled="{= !${chat>/loading} }"
+                    press="onSendPress"/>
+            </Toolbar>
+        </footer>
+
+    </Page>
+
+</mvc:View>

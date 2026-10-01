@@ -1,0 +1,204 @@
+<mvc:View
+    controllerName="zitsm.controller.Overview"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:viz="sap.viz.ui5.controls"
+    xmlns:vizData="sap.viz.ui5.data"
+    xmlns:vizFeeds="sap.viz.ui5.controls.common.feeds">
+
+    <Page id="overviewPage" title="Genel Bakış" showNavButton="true" navButtonPress="onNavBack">
+        <content>
+            <VBox class="sapUiMediumMargin">
+
+                <Panel headerText="AI Performans Göstergeleri" width="auto" class="sapUiResponsiveMargin">
+                    <HBox justifyContent="SpaceBetween" class="sapUiSmallMarginTop">
+
+                        <VBox class="statCard cardOpen sapUiMediumMarginEnd" width="100%">
+                            <HBox class="sapUiSmallMargin" alignItems="Center">
+                                <core:Icon src="sap-icon://ai" class="statIcon iconOpen"/>
+                                <VBox class="sapUiSmallMarginBegin">
+                                    <Text text="{overview>/kpi/aiResolved/value}" class="statNumber"/>
+                                    <Text text="AI İLE ÇÖZÜLEN" class="statLabel"/>
+                                    <Text text="{overview>/kpi/aiResolved/sub}" class="statSub"/>
+                                </VBox>
+                            </HBox>
+                        </VBox>
+
+                        <VBox class="statCard cardProgress sapUiMediumMarginEnd" width="100%">
+                            <HBox class="sapUiSmallMargin" alignItems="Center">
+                                <core:Icon src="sap-icon://add-document" class="statIcon iconProgress"/>
+                                <VBox class="sapUiSmallMarginBegin">
+                                    <Text text="{overview>/kpi/converted/value}" class="statNumber"/>
+                                    <Text text="ÇAĞRIYA DÖNÜŞEN" class="statLabel"/>
+                                    <Text text="{overview>/kpi/converted/sub}" class="statSub"/>
+                                </VBox>
+                            </HBox>
+                        </VBox>
+
+                        <VBox class="statCard cardTotal sapUiMediumMarginEnd" width="100%">
+                            <HBox class="sapUiSmallMargin" alignItems="Center">
+                                <core:Icon src="sap-icon://accept" class="statIcon iconTotal"/>
+                                <VBox class="sapUiSmallMarginBegin">
+                                    <Text text="{overview>/kpi/testPass/value}" class="statNumber"/>
+                                    <Text text="TEST BAŞARISI" class="statLabel"/>
+                                    <Text text="{overview>/kpi/testPass/sub}" class="statSub"/>
+                                </VBox>
+                            </HBox>
+                        </VBox>
+
+                        <VBox class="statCard cardAi" width="100%">
+                            <HBox class="sapUiSmallMargin" alignItems="Center">
+                                <core:Icon src="sap-icon://thumb-up" class="statIcon iconAi"/>
+                                <VBox class="sapUiSmallMarginBegin">
+                                    <Text text="{overview>/kpi/sugAccept/value}" class="statNumber"/>
+                                    <Text text="ÖNERİ KABULÜ" class="statLabel"/>
+                                    <Text text="{overview>/kpi/sugAccept/sub}" class="statSub"/>
+                                </VBox>
+                            </HBox>
+                        </VBox>
+
+                    </HBox>
+
+                    <Text
+                        class="kpiNote sapUiSmallMarginTop"
+                        text="Oranlar SAP'deki kayıtların sayımından hesaplanır; yapay zekânın ürettiği tahmini değerler değildir. Sonuçlanmamış sohbetler ve sonucu girilmemiş testler hesaba katılmaz."/>
+                </Panel>
+
+                <Panel headerText="Kategorilere Göre Çağrı Dağılımı" width="auto" class="sapUiResponsiveMargin">
+                    <viz:VizFrame
+                        id="categoryChart"
+                        uiConfig="{applicationSet:'fiori'}"
+                        vizType="bar"
+                        height="320px"
+                        width="100%">
+                        <viz:dataset>
+                            <vizData:FlattenedDataset data="{overview>/categoryData}">
+                                <vizData:dimensions>
+                                    <vizData:DimensionDefinition name="Kategori" value="{overview>category}"/>
+                                </vizData:dimensions>
+                                <vizData:measures>
+                                    <vizData:MeasureDefinition name="Adet" value="{overview>count}"/>
+                                </vizData:measures>
+                            </vizData:FlattenedDataset>
+                        </viz:dataset>
+                        <viz:feeds>
+                            <vizFeeds:FeedItem uid="valueAxis" type="Measure" values="Adet"/>
+                            <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="Kategori"/>
+                        </viz:feeds>
+                    </viz:VizFrame>
+                </Panel>
+
+                <Panel headerText="AI Öneri Kararları" width="auto" class="sapUiResponsiveMargin">
+                    <viz:VizFrame
+                        id="sugChart"
+                        uiConfig="{applicationSet:'fiori'}"
+                        vizType="stacked_bar"
+                        height="400px"
+                        width="100%">
+                        <viz:dataset>
+                            <vizData:FlattenedDataset data="{overview>/sugData}">
+                                <vizData:dimensions>
+                                    <vizData:DimensionDefinition name="Öneri Tipi" value="{overview>type}"/>
+                                </vizData:dimensions>
+                                <vizData:measures>
+                                    <vizData:MeasureDefinition name="Kabul" value="{overview>accepted}"/>
+                                    <vizData:MeasureDefinition name="Düzeltildi" value="{overview>changed}"/>
+                                </vizData:measures>
+                            </vizData:FlattenedDataset>
+                        </viz:dataset>
+                        <viz:feeds>
+                            <vizFeeds:FeedItem uid="valueAxis" type="Measure" values="Kabul,Düzeltildi"/>
+                            <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="Öneri Tipi"/>
+                        </viz:feeds>
+                    </viz:VizFrame>
+                </Panel>
+
+                <Panel headerText="Duruma Göre Incident Dağılımı" width="auto" class="sapUiResponsiveMargin">
+                    <viz:VizFrame
+                        id="statusChart"
+                        uiConfig="{applicationSet:'fiori'}"
+                        vizType="donut"
+                        height="360px"
+                        width="100%">
+                        <viz:dataset>
+                            <vizData:FlattenedDataset data="{overview>/statusData}">
+                                <vizData:dimensions>
+                                    <vizData:DimensionDefinition name="Durum" value="{overview>status}"/>
+                                </vizData:dimensions>
+                                <vizData:measures>
+                                    <vizData:MeasureDefinition name="Adet" value="{overview>count}"/>
+                                </vizData:measures>
+                            </vizData:FlattenedDataset>
+                        </viz:dataset>
+                        <viz:feeds>
+                            <vizFeeds:FeedItem uid="size" type="Measure" values="Adet"/>
+                            <vizFeeds:FeedItem uid="color" type="Dimension" values="Durum"/>
+                        </viz:feeds>
+                    </viz:VizFrame>
+                </Panel>
+
+                <Panel headerText="Kullanıcıya Göre Incident Sayısı" width="auto" class="sapUiResponsiveMargin">
+                    <viz:VizFrame
+                        id="userChart"
+                        uiConfig="{applicationSet:'fiori'}"
+                        vizType="column"
+                        height="360px"
+                        width="100%">
+                        <viz:dataset>
+                            <vizData:FlattenedDataset data="{overview>/userData}">
+                                <vizData:dimensions>
+                                    <vizData:DimensionDefinition name="Kullanıcı" value="{overview>user}"/>
+                                </vizData:dimensions>
+                                <vizData:measures>
+                                    <vizData:MeasureDefinition name="Adet" value="{overview>count}"/>
+                                </vizData:measures>
+                            </vizData:FlattenedDataset>
+                        </viz:dataset>
+                        <viz:feeds>
+                            <vizFeeds:FeedItem uid="valueAxis" type="Measure" values="Adet"/>
+                            <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="Kullanıcı"/>
+                        </viz:feeds>
+                    </viz:VizFrame>
+                </Panel>
+
+                <Panel headerText="Tarihe Göre Incident Dağılımı" width="auto" class="sapUiResponsiveMargin">
+                    <HBox alignItems="Center" class="sapUiSmallMarginBottom">
+                        <Label text="Tarih Aralığı:" class="sapUiSmallMarginEnd"/>
+                        <DateRangeSelection
+                            id="dateRange"
+                            change="onDateRangeChange"
+                            displayFormat="dd.MM.yyyy"
+                            placeholder="Tarih aralığı seçin"
+                            class="sapUiSmallMarginEnd"/>
+                        <Button
+                            icon="sap-icon://clear-filter"
+                            press="onClearDateRange"/>
+                    </HBox>
+                    <viz:VizFrame
+                        id="dateChart"
+                        uiConfig="{applicationSet:'fiori'}"
+                        vizType="line"
+                        height="360px"
+                        width="100%">
+                        <viz:dataset>
+                            <vizData:FlattenedDataset data="{overview>/dateData}">
+                                <vizData:dimensions>
+                                    <vizData:DimensionDefinition name="Tarih" value="{overview>date}"/>
+                                </vizData:dimensions>
+                                <vizData:measures>
+                                    <vizData:MeasureDefinition name="Adet" value="{overview>count}"/>
+                                </vizData:measures>
+                            </vizData:FlattenedDataset>
+                        </viz:dataset>
+                        <viz:feeds>
+                            <vizFeeds:FeedItem uid="valueAxis" type="Measure" values="Adet"/>
+                            <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="Tarih"/>
+                        </viz:feeds>
+                    </viz:VizFrame>
+                </Panel>
+
+            </VBox>
+        </content>
+    </Page>
+</mvc:View>

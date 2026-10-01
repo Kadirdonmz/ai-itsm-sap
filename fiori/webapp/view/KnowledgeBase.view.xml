@@ -1,0 +1,96 @@
+<mvc:View
+    controllerName="zitsm.controller.KnowledgeBase"
+    xmlns="sap.m"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns:core="sap.ui.core">
+
+    <Page
+        title="Bilgi Bankası"
+        showNavButton="true"
+        navButtonPress="onNavBack">
+
+        <content>
+            <MessageStrip
+                text="Bilgi bankası makaleleri AI asistanın çözüm önerilerinde (RAG) kaynak olarak kullanılır. Eklenen, düzenlenen veya silinen makaleler arama indeksine otomatik yansıtılır."
+                type="Information"
+                showIcon="true"
+                class="sapUiSmallMargin"/>
+
+            <Table
+                id="kbTable"
+                items="{
+                    path: 'kb>/items',
+                    sorter: { path: 'KbId', descending: true }
+                }"
+                noDataText="Bilgi bankasında makale yok."
+                growing="true"
+                growingThreshold="20">
+                <headerToolbar>
+                    <OverflowToolbar>
+                        <Title text="Makaleler ({kb>/count})" level="H2"/>
+                        <ToolbarSpacer/>
+                        <SearchField
+                            width="18rem"
+                            placeholder="Başlık, problem veya etiket ara"
+                            liveChange="onSearch"
+                            search="onSearch"/>
+                        <Button
+                            text="Yeni Makale"
+                            icon="sap-icon://add"
+                            type="Emphasized"
+                            press="onAddPress"/>
+                    </OverflowToolbar>
+                </headerToolbar>
+
+                <columns>
+                    <Column width="7rem"><Text text="Makale No"/></Column>
+                    <Column><Text text="Başlık / Problem"/></Column>
+                    <Column width="14rem" minScreenWidth="Desktop" demandPopin="true" popinDisplay="Inline">
+                        <Text text="Etiketler"/>
+                    </Column>
+                    <Column width="8rem" minScreenWidth="Tablet" demandPopin="true" popinDisplay="Inline">
+                        <Text text="Kaynak Çağrı"/>
+                    </Column>
+                    <Column width="7rem" minScreenWidth="Desktop" demandPopin="true" popinDisplay="Inline">
+                        <Text text="Oluşturan"/>
+                    </Column>
+                    <Column width="7rem" minScreenWidth="Desktop" demandPopin="true" popinDisplay="Inline">
+                        <Text text="Tarih"/>
+                    </Column>
+                    <Column width="5.5rem" hAlign="End"><Text text=""/></Column>
+                </columns>
+
+                <items>
+                    <ColumnListItem type="Active" press="onEditPress">
+                        <cells>
+                            <Text text="KB-{kb>KbId}"/>
+                            <ObjectIdentifier
+                                title="{kb>Title}"
+                                text="{kb>Problem}"/>
+                            <Text text="{kb>Tags}"/>
+                            <Link
+                                text="{kb>SourceInc}"
+                                visible="{= !!${kb>SourceInc} &amp;&amp; ${kb>SourceInc} !== '0000000000' }"
+                                press="onSourcePress"/>
+                            <Text text="{kb>CreatedBy}"/>
+                            <Text text="{path: 'kb>CreatedOn', formatter: '.formatDate'}"/>
+                            <HBox justifyContent="End">
+                                <Button
+                                    icon="sap-icon://edit"
+                                    type="Transparent"
+                                    tooltip="Düzenle"
+                                    press="onEditPress"/>
+                                <Button
+                                    icon="sap-icon://delete"
+                                    type="Transparent"
+                                    tooltip="Sil"
+                                    press="onDeletePress"/>
+                            </HBox>
+                        </cells>
+                    </ColumnListItem>
+                </items>
+            </Table>
+        </content>
+    </Page>
+
+</mvc:View>

@@ -1,0 +1,175 @@
+<mvc:View
+    controllerName="zitsm.controller.IncidentList"
+    xmlns="sap.m"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns:core="sap.ui.core">
+
+    <Page title="{i18n>listTitle}">
+
+        <customHeader>
+            <Bar class="pageHeader">
+                <contentLeft>
+                    <core:Icon src="sap-icon://alert" class="headerIcon"/>
+                    <Text text="{i18n>listTitle}" class="headerTitle"/>
+                </contentLeft>
+            </Bar>
+        </customHeader>
+
+        <content><HBox class="sapUiSmallMargin sapUiMediumMarginTop" justifyContent="SpaceBetween">
+
+                <VBox id="cardTotal" class="statCard cardTotal sapUiMediumMarginEnd sapUiCursorPointer" width="100%">
+                    <HBox class="sapUiSmallMargin" alignItems="Center">
+                        <core:Icon src="sap-icon://list" class="statIcon iconTotal"/>
+                        <VBox class="sapUiSmallMarginBegin">
+                            <Text text="{view>/countTotal}" class="statNumber"/>
+                            <Text text="TOPLAM" class="statLabel"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <VBox id="cardOpen" class="statCard cardOpen sapUiMediumMarginEnd sapUiCursorPointer" width="100%">
+                    <HBox class="sapUiSmallMargin" alignItems="Center">
+                        <core:Icon src="sap-icon://circle-task-2" class="statIcon iconOpen"/>
+                        <VBox class="sapUiSmallMarginBegin">
+                            <Text text="{view>/countOpen}" class="statNumber"/>
+                            <Text text="OPEN" class="statLabel"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <VBox id="cardProgress" class="statCard cardProgress sapUiMediumMarginEnd sapUiCursorPointer" width="100%">
+                    <HBox class="sapUiSmallMargin" alignItems="Center">
+                        <core:Icon src="sap-icon://busy" class="statIcon iconProgress"/>
+                        <VBox class="sapUiSmallMarginBegin">
+                            <Text text="{view>/countInProgress}" class="statNumber"/>
+                            <Text text="IN PROGRESS" class="statLabel"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <VBox id="cardResolved" class="statCard cardResolved sapUiMediumMarginEnd sapUiCursorPointer" width="100%">
+                    <HBox class="sapUiSmallMargin" alignItems="Center">
+                        <core:Icon src="sap-icon://complete" class="statIcon iconResolved"/>
+                        <VBox class="sapUiSmallMarginBegin">
+                            <Text text="{view>/countResolved}" class="statNumber"/>
+                            <Text text="RESOLVED" class="statLabel"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <VBox id="cardClosed" class="statCard cardClosed sapUiCursorPointer" width="100%">
+                    <HBox class="sapUiSmallMargin" alignItems="Center">
+                        <core:Icon src="sap-icon://accept" class="statIcon iconClosed"/>
+                        <VBox class="sapUiSmallMarginBegin">
+                            <Text text="{view>/countClosed}" class="statNumber"/>
+                            <Text text="CLOSED" class="statLabel"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </HBox>
+
+            <Table id="incidentTable"
+            updateFinished="_updateCounts"
+            items="{
+                    path: 'incidents>/IncidentSet',
+                    parameters: { operationMode: 'Client' }
+                }">
+            <headerToolbar>
+                <OverflowToolbar>
+                    <ComboBox
+                        id="priorityFilter"
+                        width="10rem"
+                        placeholder="Öncelik"
+                        showClearIcon="true"
+                        selectionChange="onFilterChange">
+                        <core:Item key="L" text="Low"/>
+                        <core:Item key="M" text="Medium"/>
+                        <core:Item key="H" text="High"/>
+                    </ComboBox>
+                    <ToolbarSpacer/>
+                    <Button
+                        text="AI Sohbeti"
+                        icon="sap-icon://discussion-2"
+                        class="sapUiTinyMarginEnd"
+                        press="onOpenChat"/>
+                    <Button
+                        text="Genel Bakış"
+                        icon="sap-icon://bar-chart"
+                        class="sapUiTinyMarginEnd"
+                        press="onOpenOverview"/>
+                    <Button
+                        text="Bilgi Bankası"
+                        icon="sap-icon://course-book"
+                        class="sapUiTinyMarginEnd"
+                        tooltip="Bilgi bankası makalelerini yönet"
+                        press="onOpenKb"/>
+                    <Button
+                        text="İndeksi Yenile"
+                        icon="sap-icon://synchronize"
+                        class="sapUiTinyMarginEnd"
+                        tooltip="Semantik arama indeksini SAP verisinden yeniden kurar"
+                        press="onReindexPress"/>
+                    <Button
+                        text="{i18n>btnNewIncident}"
+                        icon="sap-icon://add"
+                        type="Emphasized"
+                        class="sapUiTinyMarginEnd"
+                        press="onCreatePress"/>
+                    <SearchField
+                        width="20rem"
+                        search="onSearch"
+                        liveChange="onSearch"
+                        placeholder="Başlık veya No ara"/>
+                </OverflowToolbar>
+            </headerToolbar>
+
+                <columns>
+                    <Column>
+                        <Button
+                            type="Transparent"
+                            text="{i18n>colNo}"
+                            icon="{view>/sortIconNo}"
+                            iconFirst="false"
+                            press="onSortNo"/>
+                    </Column>
+                    <Column>
+                        <Button
+                            type="Transparent"
+                            text="{i18n>colTitle}"
+                            icon="{view>/sortIconTitle}"
+                            iconFirst="false"
+                            press="onSortTitle"/>
+                    </Column>
+                    <Column><Text text="{i18n>colPriority}"/></Column>
+                    <Column><Text text="{i18n>colStatus}"/></Column>
+                    <Column><Text text="SLA"/></Column>
+                    <Column><Text text="{i18n>colAssignedTo}"/></Column>
+                </columns>
+
+                <items>
+                    <ColumnListItem
+                        type="Navigation"
+                        press="onItemPress">
+                        <cells>
+                            <Text text="{incidents>IncidentNo}"/>
+                            <Text text="{incidents>Title}"/>
+                            <ObjectStatus
+                                text="{path: 'incidents>Priority', formatter: '.formatter.priorityText'}"
+                                state="{path: 'incidents>Priority', formatter: '.formatter.priorityState'}"/>
+                            <ObjectStatus
+                                text="{path: 'incidents>Status', formatter: '.formatter.statusText'}"
+                                state="{path: 'incidents>Status', formatter: '.formatter.statusState'}"/>
+                            <ObjectStatus
+                                text="{parts: ['incidents>Priority', 'incidents>Status', 'incidents>CreatedOn', 'incidents>CreatedAt', 'incidents>ClosedOn', 'incidents>ClosedAt'], formatter: '.formatter.slaText'}"
+                                state="{parts: ['incidents>Priority', 'incidents>Status', 'incidents>CreatedOn', 'incidents>CreatedAt', 'incidents>ClosedOn', 'incidents>ClosedAt'], formatter: '.formatter.slaState'}"/>
+                            <Text text="{incidents>AssignedTo}"/>
+                        </cells>
+                    </ColumnListItem>
+                </items>
+
+            </Table>
+        </content>
+
+    </Page>
+
+</mvc:View>

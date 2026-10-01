@@ -1,0 +1,13 @@
+{
+  "name": "zitsm-fiori",
+  "version": "1.0.0",
+  "description": "SAP Fiori (UI5) front end for the AI-assisted ITSM prototype",
+  "private": true,
+  "scripts": {
+    "start": "ui5 serve --open index.html"
+  },
+  "devDependencies": {
+    "@ui5/cli": "^4.0.60",
+    "ui5-middleware-simpleproxy": "^3.8.0"
+  }
+}

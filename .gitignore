@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Secrets
+.env
+
+# Generated search index (rebuilt via /reindex)
+ai-service/data/
+
+# Build / OS / editor
+dist/
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log

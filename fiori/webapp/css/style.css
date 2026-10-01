@@ -1,0 +1,240 @@
+/* ===== Incident list: header and status cards ===== */
+.statCard {
+    border-radius: 12px;
+    padding: 1.5px;
+}
+.statNumber {
+    font-size: 2.5rem;
+    font-weight: bold;
+    line-height: 1;
+}
+.statLabel {
+    font-size: 0.85rem;
+    color: #556;
+    letter-spacing: 0.5px;
+}
+.cardTotal    { background-color: #e0e7ff; }
+.cardOpen     { background-color: #d8ebd9; }
+.cardProgress { background-color: #ffe6c7; }
+.cardResolved { background-color: #d5eef2; }
+.cardClosed   { background-color: #ffdae0; }
+
+.pageHeader .sapMBarLeft {
+    align-items: center;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    height: auto;
+}
+.headerIcon {
+    color: #5b6cff;
+    font-size: 1.6rem;
+    margin-right: 0.75rem;
+}
+.headerTitle {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+
+.statIcon {
+    font-size: 1.5rem;
+    padding: 0.6rem;
+    border-radius: 10px;
+}
+.iconTotal    { color: #4553d6; background-color: #cdd4ff; }
+.iconOpen     { color: #256628; background-color: #bfe3c2; }
+.iconProgress { color: #c26f00; background-color: #ffd59e; }
+.iconResolved { color: #0b6e7a; background-color: #b3e0e7; }
+.iconClosed   { color: #a91f1f; background-color: #f3c2c6; }
+.cardActive {
+    outline: 2px solid #5b6cff;
+    outline-offset: -2px;
+}
+
+/* ===== Chat screen ===== */
+.chatScroll {
+    background: #f4f6fb;
+}
+
+.chatInner {
+    max-width: 880px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 1.5rem 1rem 1rem;
+    box-sizing: border-box;
+}
+
+/* Top bar */
+.chatHeader.sapMBar {
+    box-shadow: 0 1px 0 #e6e8f0;
+}
+.chatHeaderIcon {
+    font-size: 1rem;
+    color: #ffffff !important;
+    background: linear-gradient(135deg, #5b6cff, #8a5bff);
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+}
+.chatHeaderTitle {
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+/* Welcome state */
+.chatWelcome {
+    padding: 3rem 1rem 2rem;
+}
+.chatWelcomeIcon {
+    font-size: 1.8rem;
+    color: #ffffff !important;
+    background: linear-gradient(135deg, #5b6cff, #8a5bff);
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 16px rgba(91, 108, 255, 0.3);
+}
+.chatWelcomeText.sapMText {
+    max-width: 520px;
+    color: #5b6477 !important;
+    margin-top: 0.5rem;
+}
+.chatChip {
+    margin: 0.25rem;
+}
+.chatChip .sapMBtnInner {
+    border-radius: 999px;
+    border-color: #d9ddf0;
+    background: #ffffff;
+}
+
+/* Message rows */
+.chatRow {
+    margin-bottom: 0.9rem;
+}
+.chatAvatar {
+    font-size: 0.9rem;
+    color: #ffffff !important;
+    background: linear-gradient(135deg, #5b6cff, #8a5bff);
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+}
+
+/* Bubbles */
+.chatBubbleUser,
+.chatBubbleAi {
+    max-width: 72%;
+    padding: 0.65rem 0.9rem 0.45rem;
+    box-sizing: border-box;
+}
+.chatBubbleUser {
+    background: linear-gradient(135deg, #5b6cff, #6f5bff);
+    border-radius: 18px 18px 4px 18px;
+    box-shadow: 0 2px 6px rgba(91, 108, 255, 0.25);
+}
+.chatBubbleAi {
+    background: #ffffff;
+    border: 1px solid #e6e8f0;
+    border-radius: 18px 18px 18px 4px;
+    box-shadow: 0 1px 3px rgba(20, 30, 60, 0.06);
+}
+.chatText.sapMText {
+    font-size: 0.95rem;
+    line-height: 1.45;
+}
+.chatBubbleUser .chatText.sapMText {
+    color: #ffffff !important;
+}
+.chatBubbleAi .chatText.sapMText {
+    color: #1d2433 !important;
+}
+.chatTime.sapMText {
+    font-size: 0.7rem;
+    margin-top: 0.25rem;
+    text-align: right;
+}
+.chatBubbleUser .chatTime.sapMText {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+.chatBubbleAi .chatTime.sapMText {
+    color: #8a93a6 !important;
+}
+
+/* KB source link under AI answers */
+.chatSource {
+    margin-top: 0.5rem;
+    padding: 0.4rem 0.55rem;
+    background: #f3efff;
+    border-left: 3px solid #8a5bff;
+    border-radius: 6px;
+}
+.chatSourceIcon {
+    color: #5b3fd6 !important;
+    font-size: 0.85rem;
+    margin-right: 0.4rem;
+    margin-top: 0.1rem;
+}
+.chatSourceText.sapMText {
+    font-size: 0.78rem;
+    color: #4a3d8f !important;
+    white-space: pre-line;
+}
+
+/* Typing indicator */
+.chatTyping {
+    display: flex;
+    align-items: center;
+    padding-bottom: 0.65rem !important;
+}
+.chatTyping .sapMText {
+    color: #8a93a6 !important;
+    font-style: italic;
+    font-size: 0.85rem;
+}
+
+/* Message input */
+.chatFooter.sapMTB {
+    background: #ffffff;
+    border-top: 1px solid #e6e8f0;
+    padding: 0 1rem;
+}
+.chatInput .sapMInputBaseContentWrapper {
+    border-radius: 999px;
+    padding: 0 0.5rem;
+}
+
+/* ===== Test plan: expected result line ===== */
+.testExpected.sapMText {
+    font-size: 0.8rem;
+    font-style: italic;
+    color: #5b6477 !important;
+}
+
+/* ===== Overview: AI KPI cards ===== */
+.statSub.sapMText {
+    font-size: 0.72rem;
+    color: #6b7385 !important;
+    margin-top: 0.15rem;
+}
+.cardAi {
+    background: #f3efff;
+}
+.iconAi {
+    background: #e1d8ff;
+    color: #5b3fd6 !important;
+}
+.kpiNote.sapMText {
+    font-size: 0.8rem;
+    color: #6b7385 !important;
+}

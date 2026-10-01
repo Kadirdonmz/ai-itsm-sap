@@ -1,0 +1,508 @@
+<mvc:View
+    controllerName="zitsm.controller.IncidentDetail"
+    xmlns="sap.m"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns:f="sap.ui.layout.form"
+    xmlns:u="sap.ui.unified"
+    xmlns:core="sap.ui.core">
+
+    <Page
+        title="{i18n>detailTitle}"
+        showNavButton="true"
+        navButtonPress="onNavBack">
+
+        <headerContent>
+            <Button
+                text="Bilgi Bankası Makalesi"
+                icon="sap-icon://learning-assistant"
+                tooltip="Bu çağrının çözümünden bilgi bankası makalesi taslağı üretir"
+                press="onCreateKbPress"
+                visible="{= !${view>/editMode} &amp;&amp; (${incidents>Status} === 'R' || ${incidents>Status} === 'C') }"/>
+            <Button
+                text="{i18n>btnEdit}"
+                icon="sap-icon://edit"
+                press="onEditPress"
+                visible="{= !${view>/editMode} }"/>
+            <Button
+                text="{i18n>btnSave}"
+                icon="sap-icon://save"
+                type="Emphasized"
+                press="onSavePress"
+                visible="{view>/editMode}"/>
+            <Button
+                text="{i18n>btnCancel}"
+                press="onCancelPress"
+                visible="{view>/editMode}"/>
+        </headerContent>
+
+        <content>
+            <f:SimpleForm layout="ResponsiveGridLayout">
+                <f:content>
+
+                    <Label text="{i18n>lblNo}"/>
+                    <Text text="{incidents>IncidentNo}"/>
+
+                    <Label text="{i18n>lblTitle}"/>
+                    <Text text="{incidents>Title}"/>
+
+                    <Label text="{i18n>lblDescription}"/>
+                    <Text text="{incidents>Description}"/>
+
+                    <Label text="{i18n>lblPriority}"/>
+                    <ObjectStatus
+                        visible="{= !${view>/editMode} }"
+                        text="{path: 'incidents>Priority', formatter: '.formatter.priorityText'}"
+                        state="{path: 'incidents>Priority', formatter: '.formatter.priorityState'}"/>
+                    <Select
+                        visible="{view>/editMode}"
+                        selectedKey="{incidents>Priority}">
+                        <core:Item key="L" text="Low"/>
+                        <core:Item key="M" text="Medium"/>
+                        <core:Item key="H" text="High"/>
+                    </Select>
+
+                    <Label text="{i18n>lblStatus}"/>
+                    <ObjectStatus
+                        visible="{= !${view>/editMode} }"
+                        text="{path: 'incidents>Status', formatter: '.formatter.statusText'}"
+                        state="{path: 'incidents>Status', formatter: '.formatter.statusState'}"/>
+                    <Select
+                        visible="{view>/editMode}"
+                        selectedKey="{incidents>Status}">
+                        <core:Item key="O" text="Open"/>
+                        <core:Item key="I" text="In Progress"/>
+                        <core:Item key="R" text="Resolved"/>
+                        <core:Item key="C" text="Closed"/>
+                    </Select>
+
+                    <Label text="SLA"/>
+                    <VBox>
+                        <ObjectStatus
+                            text="{parts: ['incidents>Priority', 'incidents>Status', 'incidents>CreatedOn', 'incidents>CreatedAt', 'incidents>ClosedOn', 'incidents>ClosedAt'], formatter: '.formatter.slaText'}"
+                            state="{parts: ['incidents>Priority', 'incidents>Status', 'incidents>CreatedOn', 'incidents>CreatedAt', 'incidents>ClosedOn', 'incidents>ClosedAt'], formatter: '.formatter.slaState'}"/>
+                        <Text
+                            text="{path: 'incidents>Priority', formatter: '.formatter.slaTargetText'}"
+                            class="sapUiTinyMarginTop"/>
+                    </VBox>
+
+                    <Label text="{i18n>lblReporter}"/>
+                    <Text text="{incidents>Reporter}"/>
+
+                    <Label text="{i18n>lblAssignedTo}"/>
+                    <Text
+                        visible="{= !${view>/editMode} }"
+                        text="{incidents>AssignedTo}"/>
+                    <Input
+                        visible="{view>/editMode}"
+                        value="{incidents>AssignedTo}"
+                        showValueHelp="true"
+                        valueHelpRequest="onValueHelpRequest"/>
+
+                    <Label text="Talep Türü"/>
+                                        <ObjectStatus
+                        visible="{= !${view>/editMode} }"
+                        text="{path: 'incidents>RequestType', formatter: '.formatter.formatRequestType'}"/>
+                    <Select
+                        visible="{view>/editMode}"
+                        selectedKey="{incidents>RequestType}">
+                        <core:Item key="incident" text="Arıza"/>
+                        <core:Item key="request" text="Talep"/>
+                    </Select>
+
+                    <Label text="Kategori"/>
+                    <Text
+                        visible="{= !${view>/editMode} }"
+                        text="{incidents>Category}"/>
+                    <!-- Categories come from ZITSM_CATEGORY (SM30) -->
+                    <ComboBox
+                        visible="{view>/editMode}"
+                        selectedKey="{incidents>Category}"
+                        items="{path: 'incidents>/CategorySet', sorter: {path: 'CategoryName'}, templateShareable: false}"
+                        selectionChange="onCategoryChange"
+                        placeholder="Kategori seçin">
+                        <core:Item key="{incidents>CategoryName}" text="{incidents>CategoryName}"/>
+                    </ComboBox>
+
+                    <Label text="Destek Grubu"/>
+                    <Text
+                        visible="{= !${view>/editMode} }"
+                        text="{incidents>SupportGroup}"/>
+                    <Input
+                        visible="{view>/editMode}"
+                        value="{incidents>SupportGroup}"/>
+
+                    <Label text="Etki"/>
+                    <ObjectStatus
+                        visible="{= !${view>/editMode} }"
+                        text="{path: 'incidents>Impact', formatter: '.formatImpactText'}"
+                        state="{path: 'incidents>Impact', formatter: '.formatImpactState'}"/>
+                    <Select
+                        visible="{view>/editMode}"
+                        selectedKey="{incidents>Impact}"
+                       >
+                        <core:Item key="" text="Belirtilmemiş"/>
+                        <core:Item key="L" text="Düşük"/>
+                        <core:Item key="M" text="Orta"/>
+                        <core:Item key="H" text="Yüksek"/>
+                    </Select>
+
+                    <Label text="Çözüm" required="{= ${view>/editMode} &amp;&amp; ${incidents>Status} === 'R' }"/>
+                    <Text
+                        visible="{= !${view>/editMode} }"
+                        text="{= ${incidents>Resolution} || 'Henüz çözüm girilmedi.' }"/>
+                    <TextArea
+                        visible="{view>/editMode}"
+                        value="{incidents>Resolution}"
+                        rows="4"
+                        growing="true"
+                        width="100%"
+                        placeholder="Sorunun nasıl çözüldüğünü / yapılan değişikliği yazın. Talebi 'Resolved' yapmak için zorunludur."/>
+
+                </f:content>
+            </f:SimpleForm>
+
+            <Panel headerText="AI Özeti (Uzman İçin)" class="sapUiSmallMarginTop">
+                <Toolbar>
+                    <Text text="Çağrının özeti, kullanıcının denediği adımlar, muhtemel nedenler ve önerilen sonraki aksiyonlar."/>
+                    <ToolbarSpacer/>
+                    <Button
+                        text="Özet Oluştur"
+                        icon="sap-icon://ai"
+                        type="Emphasized"
+                        press="onSummaryPress"/>
+                </Toolbar>
+
+                <VBox
+                    class="sapUiSmallMargin"
+                    visible="{= ${summary>/incidentNo} === ${incidents>IncidentNo} }">
+
+                    <MessageStrip
+                        text="Bu özet AI tarafından üretilmiştir. Karar vermeden önce kontrol ediniz."
+                        type="Information"
+                        showIcon="true"
+                        class="sapUiSmallMarginBottom"/>
+
+                    <Title text="Özet" level="H5"/>
+                    <Text text="{summary>/summary}" class="sapUiSmallMarginBottom"/>
+
+                    <Title text="Kullanıcının Denediği Adımlar" level="H5"/>
+                    <Text text="{summary>/triedText}" class="sapUiSmallMarginBottom"/>
+
+                    <Title text="Muhtemel Nedenler" level="H5"/>
+                    <Text text="{summary>/causesText}" class="sapUiSmallMarginBottom"/>
+
+                    <Title text="Önerilen Sonraki Aksiyonlar" level="H5"/>
+                    <Text text="{summary>/actionsText}"/>
+                </VBox>
+            </Panel>
+
+            <Panel
+                headerText="Değişiklik Özeti (Release Note)"
+                class="sapUiSmallMarginTop"
+                visible="{= ${incidents>Status} === 'R' || ${incidents>Status} === 'C' }">
+                <Toolbar>
+                    <Text text="Çözüm sonrası değişiklik özeti; uzman onayından sonra çağrıyla birlikte kalıcı olarak saklanır."/>
+                    <ToolbarSpacer/>
+                    <Button
+                        text="Düzenle"
+                        icon="sap-icon://edit"
+                        visible="{relnote>/exists}"
+                        press="onReleaseNoteEditPress"/>
+                    <Button
+                        text="AI ile Oluştur"
+                        icon="sap-icon://ai"
+                        type="Emphasized"
+                        press="onReleaseNotePress"/>
+                </Toolbar>
+
+                <VBox class="sapUiSmallMargin">
+                    <MessageStrip
+                        visible="{relnote>/exists}"
+                        text="{relnote>/metaText}"
+                        type="{= ${relnote>/decision} === 'A' ? 'Success' : 'Information' }"
+                        showIcon="true"
+                        class="sapUiSmallMarginBottom"/>
+                    <Text
+                        visible="{relnote>/exists}"
+                        text="{relnote>/text}"/>
+                    <Text
+                        visible="{= !${relnote>/exists} }"
+                        text="Henüz onaylanmış bir değişiklik özeti yok. Talep Resolved durumuna alındığında AI taslağı otomatik hazırlanır ve onayınıza sunulur; isterseniz 'AI ile Oluştur' ile şimdi de üretebilirsiniz."/>
+                </VBox>
+            </Panel>
+
+            <Panel headerText="{i18n>historyTitle}" class="sapUiSmallMarginTop">
+                <Table id="logTable" items="{incidents>/IncidentLogSet}">
+                    <columns>
+                        <Column><Text text="{i18n>colOldStatus}"/></Column>
+                        <Column><Text text="{i18n>colNewStatus}"/></Column>
+                        <Column><Text text="{i18n>colChangedBy}"/></Column>
+                        <Column><Text text="{i18n>colChangeDate}"/></Column>
+                        <Column><Text text="{i18n>colChangeTime}"/></Column>
+                    </columns>
+                    <items>
+                        <ColumnListItem>
+                            <cells>
+                                <ObjectStatus
+                                    text="{path: 'incidents>OldStatus', formatter: '.formatter.statusText'}"
+                                    state="{path: 'incidents>OldStatus', formatter: '.formatter.statusState'}"/>
+                                <ObjectStatus
+                                    text="{path: 'incidents>NewStatus', formatter: '.formatter.statusText'}"
+                                    state="{path: 'incidents>NewStatus', formatter: '.formatter.statusState'}"/>
+                                <Text text="{incidents>ChangedBy}"/>
+                                <Text text="{path: 'incidents>ChangeDate', formatter: '.formatter.dateText'}"/>
+                                <Text text="{path: 'incidents>ChangeTime', formatter: '.formatter.timeText'}"/>
+                            </cells>
+                        </ColumnListItem>
+                    </items>
+                </Table>
+            </Panel>
+
+            <Panel headerText="Ekler" class="sapUiSmallMarginTop">
+                <Toolbar>
+                    <u:FileUploader
+                        id="fileUploader"
+                        buttonText="Dosya Seç"
+                        placeholder="Yüklenecek dosyayı seçin"
+                        change="onFileSelected"/>
+                    <Button
+                        text="Yükle"
+                        icon="sap-icon://upload"
+                        type="Emphasized"
+                        press="onUploadPress"/>
+                </Toolbar>
+
+                <Table id="attachTable" items="{attach>/items}">
+                    <columns>
+                        <Column><Text text="Dosya Adı"/></Column>
+                        <Column><Text text="Boyut"/></Column>
+                        <Column><Text text="Yükleyen"/></Column>
+                        <Column><Text text="Tarih"/></Column>
+                        <Column minScreenWidth="Tablet" demandPopin="true"><Text text="Bağlı Test"/></Column>
+                        <Column hAlign="End"><Text text=""/></Column>
+                    </columns>
+                    <items>
+                        <ColumnListItem>
+                            <cells>
+                                <Text text="{attach>Filename}"/>
+                                <Text text="{path: 'attach>Filesize', formatter: '.formatItemSize'}"/>
+                                <Text text="{attach>UploadedBy}"/>
+                                <Text text="{path: 'attach>UploadedOn', formatter: '.formatItemDate'}"/>
+                                <Text text="{path: 'attach>TestId', formatter: '.formatEvidenceTest'}"/>
+                                <HBox justifyContent="End">
+                                    <Button
+                                        icon="sap-icon://download"
+                                        type="Transparent"
+                                        tooltip="İndir"
+                                        press="onDownloadPress"/>
+                                    <Button
+                                        icon="sap-icon://delete"
+                                        type="Transparent"
+                                        tooltip="Sil"
+                                        press="onDeletePress"/>
+                                </HBox>
+                            </cells>
+                        </ColumnListItem>
+                    </items>
+                </Table>
+            </Panel>
+
+            <Panel headerText="Benzer Geçmiş Çağrılar" class="sapUiSmallMarginTop">
+                <MessageStrip
+                    text="{similar>/recurringText}"
+                    type="{similar>/recurringType}"
+                    showIcon="true"
+                    visible="{similar>/recurringVisible}"
+                    class="sapUiSmallMarginBottom"/>
+                <Toolbar>
+                    <Text text="Anlam benzerliğine göre bulunan geçmiş çağrılar ve nasıl çözüldükleri. Benzerlik, metinlerin AI embedding vektörleri arasındaki kosinüs benzerliğidir (LLM tahmini değildir)."/>
+                    <ToolbarSpacer/>
+                    <BusyIndicator visible="{similar>/loading}" size="1rem"/>
+                </Toolbar>
+
+                <Table id="similarTable" items="{similar>/items}"
+                       noDataText="Benzer geçmiş çağrı bulunamadı.">
+                    <columns>
+                        <Column width="8rem"><Text text="Çağrı No"/></Column>
+                        <Column><Text text="Başlık"/></Column>
+                        <Column width="7rem" minScreenWidth="Tablet" demandPopin="true" popinDisplay="Inline">
+                            <Text text="Öncelik"/>
+                        </Column>
+                        <Column width="7rem" minScreenWidth="Tablet" demandPopin="true" popinDisplay="Inline">
+                            <Text text="Durum"/>
+                        </Column>
+                        <Column minScreenWidth="Desktop" demandPopin="true" popinDisplay="Block">
+                            <Text text="Nasıl Çözüldü"/>
+                        </Column>
+                        <Column width="7rem" hAlign="End"><Text text="Benzerlik"/></Column>
+                    </columns>
+                    <items>
+                        <ColumnListItem type="Navigation" press="onSimilarPress">
+                            <cells>
+                                <Text text="{similar>IncidentNo}"/>
+                                <Text text="{similar>Title}"/>
+                                <ObjectStatus
+                                    text="{path: 'similar>Priority', formatter: '.formatter.priorityText'}"
+                                    state="{path: 'similar>Priority', formatter: '.formatter.priorityState'}"/>
+                                <ObjectStatus
+                                    text="{path: 'similar>Status', formatter: '.formatter.statusText'}"
+                                    state="{path: 'similar>Status', formatter: '.formatter.statusState'}"/>
+                                <Text text="{similar>Resolution}" maxLines="3"/>
+                                <Text text="{similar>ScorePct}"/>
+                            </cells>
+                        </ColumnListItem>
+                    </items>
+                </Table>
+            </Panel>
+
+            <Panel headerText="Gereksinimler (Dokümandan)" class="sapUiSmallMarginTop">
+                <Toolbar>
+                    <Text text="Talep dokümanı revize edildiyse, en son yüklenen PDF'i mevcut gereksinimlerle karşılaştırın."/>
+                    <ToolbarSpacer/>
+                    <Button
+                        text="Revizyon Analizi"
+                        icon="sap-icon://compare"
+                        enabled="{= ${incidents>Status} === 'O' || ${incidents>Status} === 'I' }"
+                        press="onRevisionAnalysisPress"/>
+                </Toolbar>
+                <Table id="reqTable" items="{req>/items}" noDataText="Bu talep için gereksinim çıkarılmamış.">
+                    <columns>
+                        <Column width="6rem"><Text text="Gereksinim"/></Column>
+                        <Column><Text text="Açıklama"/></Column>
+                        <Column width="9rem"><Text text="Tip"/></Column>
+                        <Column><Text text="Kaynak"/></Column>
+                    </columns>
+                    <items>
+                        <ColumnListItem>
+                            <cells>
+                                <Text text="REQ-{req>ReqId}"/>
+                                <Text text="{req>ReqText}"/>
+                                <Text text="{path: 'req>ReqType', formatter: '.formatReqType'}"/>
+                                <Text text="{req>SourceRef}"/>
+                            </cells>
+                        </ColumnListItem>
+                    </items>
+                </Table>
+            </Panel>
+
+            <Panel headerText="Test Planı" class="sapUiSmallMarginTop">
+                <Toolbar>
+                    <Text text="Uzman, talebi Resolved durumuna almadan önce testleri sonuçlandırmalıdır. Başarısız/uygulanamaz testler için açıklama zorunludur."/>
+                    <ToolbarSpacer/>
+                    <Button
+                        text="Test Geçmişi"
+                        icon="sap-icon://history"
+                        tooltip="Test sonuçlarındaki tüm değişikliklerin kaydı"
+                        press="onTestHistoryPress"/>
+                    <Button
+                        text="Benzer Taleplerden Öner"
+                        icon="sap-icon://lightbulb"
+                        enabled="{= ${incidents>Status} !== 'C' &amp;&amp; ${incidents>Status} !== 'R' }"
+                        press="onSuggestTestsPress"/>
+                    <Button
+                        text="Test Ekle"
+                        icon="sap-icon://add"
+                        enabled="{= ${incidents>Status} !== 'C' &amp;&amp; ${incidents>Status} !== 'R' }"
+                        press="onTestAddPress"/>
+                    <Button
+                        text="Sonuçları Kaydet"
+                        icon="sap-icon://save"
+                        type="Emphasized"
+                        enabled="{= ${incidents>Status} !== 'C' &amp;&amp; ${incidents>Status} !== 'R' }"
+                        press="onSaveTestsPress"/>
+                </Toolbar>
+
+                <Table id="testTable" items="{test>/items}" noDataText="Bu talep için test adımı oluşturulmamış.">
+                    <columns>
+                        <Column><Text text="Test Adımı"/></Column>
+                        <Column width="7rem" minScreenWidth="Desktop" demandPopin="true" popinDisplay="Inline">
+                            <Text text="Tip"/>
+                        </Column>
+                        <Column width="5rem" hAlign="Center" minScreenWidth="Tablet" demandPopin="true" popinDisplay="Inline">
+                            <Text text="Kritik"/>
+                        </Column>
+                        <Column width="6rem" minScreenWidth="Desktop" demandPopin="true" popinDisplay="Inline">
+                            <Text text="Gereksinim"/>
+                        </Column>
+                        <Column width="9rem"><Text text="Sonuç"/></Column>
+                        <Column width="14rem" minScreenWidth="Tablet" demandPopin="true" popinDisplay="Block">
+                            <Text text="Açıklama"/>
+                        </Column>
+                        <Column width="8rem" minScreenWidth="Desktop" demandPopin="true" popinDisplay="Inline">
+                            <Text text="Yapan"/>
+                        </Column>
+                        <Column width="7rem" minScreenWidth="Desktop" demandPopin="true" popinDisplay="Inline">
+                            <Text text="Tarih"/>
+                        </Column>
+                        <Column width="8rem" hAlign="End"><Text text=""/></Column>
+                    </columns>
+                    <items>
+                        <ColumnListItem>
+                            <cells>
+                                <VBox>
+                                    <Text text="{test>TestText}"/>
+                                    <Text
+                                        text="Beklenen: {test>ExpectedResult}"
+                                        visible="{= !!${test>ExpectedResult} }"
+                                        class="testExpected sapUiTinyMarginTop"/>
+                                    <HBox wrap="Wrap" items="{test>Evidence}" visible="{= ${test>Evidence}.length > 0 }">
+                                        <items>
+                                            <Link
+                                                text="📎 {test>Filename}"
+                                                class="sapUiTinyMarginEnd sapUiTinyMarginTop"
+                                                press="onEvidenceDownloadPress"/>
+                                        </items>
+                                    </HBox>
+                                </VBox>
+                                <Text text="{path: 'test>TestType', formatter: '.formatTestType'}"/>
+                                <ObjectStatus
+                                    text="{path: 'test>IsCritical', formatter: '.formatCriticalText'}"
+                                    state="{path: 'test>IsCritical', formatter: '.formatCriticalState'}"/>
+                                <Text text="{= ${test>ReqId} ? 'REQ-' + ${test>ReqId} : '' }"/>
+                                <Select
+                                    selectedKey="{test>TestResult}"
+                                    enabled="{= ${incidents>Status} !== 'C' &amp;&amp; ${incidents>Status} !== 'R' }"
+                                    change="onTestResultChange">
+                                    <core:Item key="" text="-"/>
+                                    <core:Item key="P" text="Başarılı"/>
+                                    <core:Item key="F" text="Başarısız"/>
+                                    <core:Item key="N" text="Uygulanamaz"/>
+                                </Select>
+                                <Input
+                                    value="{test>Note}"
+                                    placeholder="Açıklama / kanıt"
+                                    enabled="{= ${incidents>Status} !== 'C' &amp;&amp; ${incidents>Status} !== 'R' }"
+                                    change="onTestNoteChange"/>
+                                <Text text="{test>DoneBy}"/>
+                                <Text text="{path: 'test>DoneOn', formatter: '.formatItemDate'}"/>
+                                <HBox justifyContent="End">
+                                    <Button
+                                        icon="sap-icon://attachment"
+                                        type="Transparent"
+                                        tooltip="Kanıt dosyası ekle (ekran görüntüsü, log...)"
+                                        enabled="{= ${incidents>Status} !== 'C' }"
+                                        press="onTestEvidencePress"/>
+                                    <Button
+                                        icon="sap-icon://edit"
+                                        type="Transparent"
+                                        tooltip="Test adımını düzenle"
+                                        enabled="{= ${incidents>Status} !== 'C' &amp;&amp; ${incidents>Status} !== 'R' }"
+                                        press="onTestEditPress"/>
+                                    <Button
+                                        icon="sap-icon://delete"
+                                        type="Transparent"
+                                        tooltip="Test adımını sil"
+                                        enabled="{= ${incidents>Status} !== 'C' &amp;&amp; ${incidents>Status} !== 'R' }"
+                                        press="onTestDeletePress"/>
+                                </HBox>
+                            </cells>
+                        </ColumnListItem>
+                    </items>
+                </Table>
+            </Panel>
+
+        </content>
+
+    </Page>
+
+</mvc:View>
