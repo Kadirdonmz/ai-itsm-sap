@@ -1150,64 +1150,97 @@ sap.ui.define([
             oDialog.open();
         },
 
+        // Same fields as the edit dialog so manual tests can be linked to a requirement (FR-14)
         onTestAddPress: function () {
             var that = this;
 
-            if (!this._oAddTestDialog) {
-                this._oAddTestDialog = new sap.m.Dialog({
-                    title: "Yeni Test Adımı",
-                    contentWidth: "30rem",
-                    content: [
-                        new sap.m.VBox({
-                            class: "sapUiSmallMargin",
-                            items: [
-                                new sap.m.Label({ text: "Test adımı metni", labelFor: "newTestInput" }),
-                                new sap.m.TextArea("newTestInput", { width: "100%", rows: 3 }),
-                                new sap.m.Label({ text: "Beklenen sonuç", labelFor: "newTestExpected" }).addStyleClass("sapUiSmallMarginTop"),
-                                new sap.m.TextArea("newTestExpected", { width: "100%", rows: 2, maxLength: 255 }),
-                                new sap.m.CheckBox("newTestCritical", { text: "Kritik test" })
-                            ]
-                        })
-                    ],
-                    beginButton: new sap.m.Button({
-                        text: "Ekle",
-                        type: "Emphasized",
-                        press: function () {
-                            var sText = sap.ui.getCore().byId("newTestInput").getValue();
-                            var bCrit = sap.ui.getCore().byId("newTestCritical").getSelected();
-                            var sExp  = sap.ui.getCore().byId("newTestExpected").getValue();
-                            if (!sText || !sText.trim()) {
-                                MessageToast.show("Test adımı metni boş olamaz.");
-                                return;
-                            }
-                            that._createManualTest(sText.trim(), bCrit, (sExp || "").trim());
-                            that._oAddTestDialog.close();
-                        }
-                    }),
-                    endButton: new sap.m.Button({
-                        text: "İptal",
-                        press: function () { that._oAddTestDialog.close(); }
-                    })
-                });
-                this.getView().addDependent(this._oAddTestDialog);
-            }
+            var aReqs = this.getView().getModel("req").getProperty("/items") || [];
+            var aReqItems = [new sap.ui.core.Item({ key: "", text: "— Bağlı değil —" })]
+                .concat(aReqs.map(function (r) {
+                    var sText = (r.ReqText || "");
+                    if (sText.length > 70) { sText = sText.substring(0, 70) + "…"; }
+                    return new sap.ui.core.Item({ key: r.ReqId, text: "REQ-" + r.ReqId + "  " + sText });
+                }));
 
-            sap.ui.getCore().byId("newTestInput").setValue("");
-            sap.ui.getCore().byId("newTestExpected").setValue("");
-            sap.ui.getCore().byId("newTestCritical").setSelected(false);
-            this._oAddTestDialog.open();
+            var oForm = new JSONModel({
+                TestText: "", ExpectedResult: "", TestType: "pozitif", ReqId: "", IsCritical: false
+            });
+
+            var fnLabel = function (sText, bReq) {
+                return new sap.m.Label({ text: sText, required: !!bReq }).addStyleClass("sapUiSmallMarginTop");
+            };
+
+            var oDialog = new sap.m.Dialog({
+                title: "Yeni Test Adımı",
+                contentWidth: "36rem",
+                content: [
+                    new sap.m.VBox({
+                        items: [
+                            fnLabel("Test adımı", true),
+                            new sap.m.TextArea({ value: "{form>/TestText}", width: "100%", rows: 3, growing: true }),
+
+                            fnLabel("Beklenen sonuç"),
+                            new sap.m.TextArea({ value: "{form>/ExpectedResult}", width: "100%", rows: 2, growing: true, maxLength: 255 }),
+
+                            fnLabel("Test tipi"),
+                            new sap.m.Select({
+                                selectedKey: "{form>/TestType}",
+                                width: "100%",
+                                items: [
+                                    new sap.ui.core.Item({ key: "pozitif",   text: "Pozitif" }),
+                                    new sap.ui.core.Item({ key: "negatif",   text: "Negatif" }),
+                                    new sap.ui.core.Item({ key: "sinir",     text: "Sınır Değer" }),
+                                    new sap.ui.core.Item({ key: "yetki",     text: "Yetki" }),
+                                    new sap.ui.core.Item({ key: "regresyon", text: "Regresyon" })
+                                ]
+                            }),
+
+                            fnLabel("Bağlı gereksinim"),
+                            new sap.m.Select({ selectedKey: "{form>/ReqId}", width: "100%", items: aReqItems }),
+
+                            new sap.m.CheckBox({
+                                text: "Kritik test (sonuçlanmadan talep Resolved yapılamaz)",
+                                selected: "{form>/IsCritical}"
+                            }).addStyleClass("sapUiSmallMarginTop")
+                        ]
+                    }).addStyleClass("sapUiSmallMargin")
+                ],
+                beginButton: new sap.m.Button({
+                    text: "Ekle",
+                    type: "Emphasized",
+                    press: function () {
+                        var f = oForm.getData();
+                        var sText = (f.TestText || "").trim();
+                        if (!sText) {
+                            MessageToast.show("Test adımı metni boş olamaz.");
+                            return;
+                        }
+                        oDialog.close();
+                        that._createManualTest(sText, f.IsCritical, (f.ExpectedResult || "").trim(), f.TestType, f.ReqId);
+                    }
+                }),
+                endButton: new sap.m.Button({
+                    text: "İptal",
+                    press: function () { oDialog.close(); }
+                }),
+                afterClose: function () { oDialog.destroy(); }
+            });
+
+            oDialog.setModel(oForm, "form");
+            this.getView().addDependent(oDialog);
+            oDialog.open();
         },
 
-        _createManualTest: function (sText, bCritical, sExpected) {
+        _createManualTest: function (sText, bCritical, sExpected, sType, sReqId) {
             var that = this;
             var oModel = this.getView().getModel("incidents");
 
             var oPayload = {
                 IncidentNo: this._sIncidentNo,
                 TestText:   sText,
-                TestType:   "pozitif",
+                TestType:   sType || "pozitif",
                 IsCritical: bCritical ? "X" : "",
-                ReqId:      "",
+                ReqId:      sReqId || "",
                 ExpectedResult: sExpected || "",
                 TestResult: "",
                 Note:       ""
@@ -2230,7 +2263,8 @@ sap.ui.define([
 
             aTests.forEach(function (t, i) {
                 var sNo = "Test " + (i + 1);
-                var sShort = (t.TestText || "").substring(0, 60);
+                var sShort = t.TestText || "";
+                if (sShort.length > 80) { sShort = sShort.substring(0, 80) + "…"; }
                 var bCritical = (t.IsCritical === "X");
                 var sResult = t.TestResult || "";
                 var sNote = (t.Note || "").trim();

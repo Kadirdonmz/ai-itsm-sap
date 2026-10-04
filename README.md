@@ -8,6 +8,8 @@ Son kullanıcı destek taleplerini ve SAP geliştirme/değişiklik taleplerini y
 
 > Proje, staj kapsamında verilen "Yapay Zeka Destekli ITSM Uygulaması" teknik çalışması için geliştirilmiştir.
 
+**Dokümantasyon:** [Mimari](docs/mimari.md) · [AI yaklaşımı](docs/ai-yaklasimi.md) · [Demo senaryoları](docs/demo-senaryolari.md) · [Bilinen kısıtlar](docs/bilinen-kisitlar.md) · [Örnek veri](sample-data/README.md)
+
 ---
 
 ## Mimari
@@ -59,6 +61,17 @@ flowchart LR
 - **Yüzde yok:** Keyfi LLM güven yüzdeleri yerine gerekçe metni ve gerçek kosinüs benzerlik skoru gösterilir.
 - **İnsan onayı:** Her AI önerisi düzenlenebilir bir pencerede gösterilir. Kullanıcının kararı (A = kabul, M = değiştirildi, R = reddedildi), son değer, geri bildirim ve model adı `ZITSM_AISUG` tablosuna yazılır.
 - **KVKK:** E-posta, telefon, IBAN, TCKN ve kart numaraları modele gönderilmeden maskelenir.
+- **RAG:** Sohbet ve analizde, kullanıcı metnine anlamca en yakın bilgi bankası makaleleri (`gemini-embedding-001`, kosinüs benzerliği) prompt'a bağlam olarak eklenir.
+
+Prompt yapısı, doğrulama kuralları, eşik değerleri ve izlenebilirlik detayları: [docs/ai-yaklasimi.md](docs/ai-yaklasimi.md)
+
+## Demo Senaryoları
+
+İki senaryo da canlı sistemde baştan sona çalıştırıldı. Adım adım anlatım: [docs/demo-senaryolari.md](docs/demo-senaryolari.md)
+
+**A – VPN sorunu (son kullanıcı):** Kullanıcı sorunu sohbette anlatır → asistan bilgi bankasından çözüm önerir ve kaynağı gösterir → sorun çözülmeyince sohbet tek tıkla çağrıya dönüşür, alanlar sohbetten dolar → uzman benzer çağrıları ve AI özetini görür → çağrı çözülür, bilgi bankası taslağı üretilir → yeni makale bir sonraki kullanıcıya önerilir → aynı sorun tekrarlayınca Problem kaydı önerilir.
+
+**B – ME21N limit kontrolü (SAP geliştirme talebi):** Talep PDF'i yüklenir → AI çağrı alanlarını doldurur → atama sonrası 11 gereksinim ve REQ'e bağlı test senaryoları üretilir → uzman testleri düzenler → revize doküman yüklenir, fark analizi değişen / kaldırılan / yeni gereksinimleri ve etkilenen testleri gösterir → testler sonuçlandırılır, kanıt eklenir → kritik test eksikken Resolved engellenir → tamamlanınca release note üretilir.
 
 ## Repo Yapısı
 
@@ -68,7 +81,8 @@ fiori/              SAPUI5 uygulaması
 sap/abap/classes/   ABAP sınıfları (iş mantığı + OData DPC_EXT)
 sap/abap/programs/  ABAP programları (klasik ALV raporu, kod dışa aktarma aracı)
 sap/ddic/           Tablo tanımları
-sample-data/        Örnek talep dokümanları
+sample-data/        Örnek talep dokümanları, bilgi bankası, geçmiş çağrılar, kategoriler
+docs/               Mimari, AI yaklaşımı, demo senaryoları, bilinen kısıtlar
 ```
 
 ## Kurulum
@@ -93,6 +107,8 @@ npm start                 # http://localhost:3001
 
 `http://localhost:3001/health` adresi servis durumunu, indeks boyutunu ve kategori kaynağını (SAP / yedek liste) gösterir.
 
+Kullanılan model `config.js` içinde tek bir sabittir (`MODEL`, şu an `gemini-3.5-flash`).
+
 | Endpoint | Açıklama |
 |---|---|
 | `POST /analyze` | Metin veya PDF analizi: başlık, öncelik, etki, kategori, gereksinim, test |
@@ -116,8 +132,9 @@ npm start                 # http://localhost:8080
 
 ## Bilinen Kısıtlar
 
-- Yetkilendirme basit tutulmuştur; rol bazlı (PFCG) yetki kontrolü yoktur.
-- Yeni anahtarlar `MAX + 1` ile üretilir; çok kullanıcılı yoğun kullanımda numara aralığı nesnesine geçilmelidir.
-- Vektör indeksi tek bir JSON dosyasında tutulur; büyük veri için bir vektör veritabanı gerekir.
-- PDF dokümanlar modele doğrudan verilir; PDF içeriği RAG indeksine eklenmez.
-- LLM çıktıları aynı girdide küçük farklılıklar gösterebilir; bu yüzden tüm öneriler kullanıcı onayına sunulur.
+- Rol bazlı (PFCG) yetki kontrolü yoktur; kritik test kuralı sadece Fiori'de uygulanır.
+- `MAX + 1` ile üretilen anahtarlar yoğun eşzamanlı kullanımda çakışabilir.
+- Vektör indeksi tek bir JSON dosyasındadır; PDF içeriği indekse eklenmez.
+- LLM çıktıları küçük farklılıklar gösterebilir; bu yüzden tüm öneriler kullanıcı onayına sunulur.
+
+Tam liste ve geliştirilebilecek alanlar: [docs/bilinen-kisitlar.md](docs/bilinen-kisitlar.md)

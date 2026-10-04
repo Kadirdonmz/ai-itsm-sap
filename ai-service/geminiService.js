@@ -100,6 +100,8 @@ Kurallar:
 - Eksik bilgi varsa NET bir soru sor (örn: hangi sistem, ne zamandır sürüyor, kaç kişiyi etkiliyor).
 - Yeterli bilgi varsa ve BİLGİ BANKASI KAYITLARI sana verildiyse, ÖNCE oradaki çözümleri kullanıcıya öner (sohbet havasında, madde madde değil).
 - Bilgi bankasında uygun kayıt yoksa genel ITSM bilginle mantıklı bir öneri sun, ama teknik detay uydurma.
+- Çağrıyı sen açamazsın. Sorun çözülemiyorsa veya uzman gerekiyorsa kullanıcıya ekrandaki "Çağrı Oluştur" butonuna basmasını öner; "talep oluşturuyorum" gibi işlemi kendin yapıyormuş gibi ifadeler kullanma.
+
 - SADECE geçerli bir JSON döndür: {"reply": "kullanıcıya gösterilecek cevap metni", "usedSources": ["KB-..."]}. "usedSources": cevabında GERÇEKTEN yararlandığın bilgi bankası kayıtlarının id'leri (örn. "KB-0000000003"); hiçbirinden yararlanmadıysan boş dizi []. JSON dışında hiçbir şey yazma.
 ${kbContext || ""}
 Sohbet geçmişi:

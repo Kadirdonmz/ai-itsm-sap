@@ -1,0 +1,62 @@
+[
+  {
+    "KbId": "0000000001",
+    "Title": "SAP ME21N/ME22N ZNB Belge Türü Satın Alma Limit Kontrolü ve Onay Süreci",
+    "Problem": "ME21N ve ME22N ekranlarında ZNB türünde 50.000 TL üzerindeki satın alma siparişleri kaydedilirken sistem uyarı mesajı vermekte ve siparişi 'Onay Bekliyor' statüsüne almaktadır. Kullanıcılar bu durumu bir sistem hatası veya işlem engeli olarak değerlendire",
+    "Cause": "ZNB belge türündeki satın alma siparişlerinde 50.000 TL ve üzeri tutarlar için ZMM_LIMIT tablosu baz alınarak tanımlanmış bir limit kontrolü ve onay mekanizması bulunmaktadır.",
+    "Solution": "1. ME21N veya ME22N ekranında ZNB belge türüyle sipariş oluştururken toplam tutarı kontrol edin (dövizli siparişlerde tutar güncel kur üzerinden TL'ye çevrilerek değerlendirilir).\n2. Sipariş tutarı 50.000 TL'nin üzerindeyse, sistemin verdiği uyarı mesajını onaylayarak siparişi 'Onay Bekliyor' statüsünde kaydedin.\n3. Siparişin onaylanması için Z_PURCH_MGR yetkisi bulunan bir yöneticiden onay talep edin veya ilgili yetkiye sahip kullanıcı üzerinden siparişi oluşturun.",
+    "CheckSteps": "1. ZNB türünde 50.000,01 TL ve üzeri siparişlerde uyarının alındığını ve siparişin 'Onay Bekliyor' olarak kaydolduğunu doğrulayın.\n2. Z_PURCH_MGR yetkisine sahip bir kullanıcı ile işlem yapıldığında siparişin uyarısız ve direkt onaylı oluştuğunu teyit edin.\n3. ZNB dışındaki sipariş tiplerinde ve 50.000,00 TL ve altındaki ZNB siparişlerinde limit kontrolünün tetiklenmediğini kontrol edin.",
+    "Tags": "SAP, ME21N, ME22N, ZNB, Satın Alma, Limit Kontrolü, Onay Uyarısı, Z_PURCH_MGR, ZMM_LIMIT",
+    "SourceInc": "0000000066",
+    "CreatedBy": "DEVELOPER",
+    "CreatedOn": "20260917"
+  },
+  {
+    "KbId": "0000000002",
+    "Title": "Yazıcıda Yanlış Kağıt Sıkışması Hatasının Giderilmesi",
+    "Problem": "Kullanıcı, yazıcıda fiziksel olarak herhangi bir kağıt bulunmamasına rağmen kağıt sıkışması hatası aldığını ve çıktı alamadığını belirtmiştir. Sorun genel sistemi etkilememekte, sadece ilgili yazıcıdan çıktı almak isteyen kullanıcı özelinde yaşanmaktadır.",
+    "Cause": "Kağıt yolu sensörünün üzerinde biriken toz veya küçük kağıt parçası, sensörün kağıt olmadığı halde sıkışma algılamasına neden olmaktadır.",
+    "Solution": "1. Yazıcının kapaklarını ve kağıt tepsisini açarak iç kısımda sıkışmış küçük kağıt parçaları, yabancı cisim veya toz birikintisi olup olmadığını kontrol edin.\n2. Kağıt sensörlerinin önünün açık ve temiz olduğundan emin olun.\n3. Yazıcının kapaklarını kapatın ve cihazı kapatıp güç kablosunu çekin.\n4. Yaklaşık 30 saniye bekledikten sonra güç kablosunu tekrar takıp yazıcıyı açın.\n5. Bilgisayarınızdaki yazdırma kuyruğunu kontrol edin ve takılmış işler varsa temizleyin.",
+    "CheckSteps": "Yazıcıya bir test sayfası göndererek kağıt sıkışması uyarısının kalktığını ve belgenin sorunsuz bir şekilde basıldığını doğrulayın.",
+    "Tags": "yazıcı, kağıt sıkışması, çıktı alamama, hata uyarısı, donanım",
+    "SourceInc": "0000000056",
+    "CreatedBy": "DEVELOPER",
+    "CreatedOn": "20261001"
+  },
+  {
+    "KbId": "0000000003",
+    "Title": "VPN Bağlantı Kopması ve SAP Erişim Sorunlarının Giderilmesi",
+    "Problem": "Kullanıcılar SAP sistemine erişim sağlamaya çalışırken VPN bağlantısının sürekli kopması sebebiyle sisteme giriş yapamamaktadır. Bu durum kullanıcıların bağlantısının kesilmesine ve işlemlerin durmasına neden olmaktadır.",
+    "Cause": "Ay sonu kapanışında aynı anda bağlanan kullanıcı sayısı artınca VPN ağ geçidinin eşzamanlı oturum limiti aşılmakta ve mevcut oturumlar düşürülmektedir.",
+    "Solution": "1. VPN uygulamasını tamamen kapatın ve tekrar açın.\n2. İnternet bağlantınızın aktif ve stabil olduğunu kontrol edin.\n3. VPN istemcisi üzerinden bağlantıyı tekrar başlatın.\n4. VPN bağlantısı sağlandıktan sonra SAP uygulamasını açarak tekrar giriş yapmayı deneyin.\n5. Sorunun devam etmesi durumunda BT Destek Ekibi ile iletişime geçin.",
+    "CheckSteps": "VPN uygulamasında bağlantı durumunun 'Bağlı' olduğunu doğrulayın ve SAP istemcisine sorunsuz giriş yapabildiğinizi kontrol edin.",
+    "Tags": "VPN, SAP, erişim sorunu, bağlantı kopması, ağ",
+    "SourceInc": "0000000057",
+    "CreatedBy": "DEVELOPER",
+    "CreatedOn": "20261001"
+  },
+  {
+    "KbId": "0000000004",
+    "Title": "E-Ticaret Ödeme Adımında 504 Gateway Timeout Hatası Çözümü",
+    "Problem": "Kullanıcılar e-ticaret platformunda ödeme adımı sırasında 504 Gateway Timeout hatası ile karşılaşmakta ve sipariş işlemleri yarıda kesilmektedir. Bu durum ödeme servisi ile sunucu arasındaki iletişimde zaman aşımı yaşandığını gösterir.",
+    "Cause": "Kampanya dönemindeki yoğun trafikte ödeme servisinin veritabanı bağlantı havuzu dolmakta; yeni istekler bağlantı beklerken yük dengeleyicinin 60 saniyelik zaman aşımı süresi dolduğu için 504 hatası dönmektedir.",
+    "Solution": "1. Ödeme ağ geçidi (Payment Gateway) servislerinin aktif ve erişilebilir durumda olduğunu kontrol edin.\n2. Sunucu ve ağ cihazları üzerindeki zaman aşımı (timeout) sürelerini gözden geçirin.\n3. Ödeme adımına istek gönderen servislerin ve veritabanı bağlantılarının durumunu inceleyin.\n4. Ağ veya servis kaynaklı bir kilitlenme varsa ilgili servisleri yeniden başlatın ve bağlantıyı kontrol edin.",
+    "CheckSteps": "Ödeme adımlarını takip ederek test bir sipariş işlemi gerçekleştirin ve işlemin 504 hatası almadan başarıyla tamamlandığını doğrulayın.",
+    "Tags": "e-ticaret, ödeme, 504 hatası, gateway timeout, sipariş kesintisi",
+    "SourceInc": "0000000063",
+    "CreatedBy": "DEVELOPER",
+    "CreatedOn": "20261001"
+  },
+  {
+    "KbId": "0000000005",
+    "Title": "Cisco AnyConnect VPN Bağlantı ve Zaman Aşımı (Timeout) Sorunu Çözümü",
+    "Problem": "Kullanıcılar evden çalışırken Cisco AnyConnect VPN bağlantısı sırasında sürekli zaman aşımı (timeout) hatası almaktadır. Bilgisayarı veya uygulamayı yeniden başlatmak sorunu çözmemekte ve birden fazla kullanıcı aynı anda bu durumdan etkilenmektedir.",
+    "Cause": "VPN gateway (geçit) üzerindeki eşzamanlı bağlantı limitinin dolması ve sistemde takılı kalan oturumların birikmesidir.",
+    "Solution": "1. VPN gateway üzerindeki eşzamanlı bağlantı limitini kontrol edin ve limiti artırın.\n2. Gateway üzerinde takılı kalan aktif olmayan oturumları temizleyin.\n3. Kullanıcılardan Cisco AnyConnect uygulamasını tamamen kapatıp yeniden açmalarını ve tekrar bağlanmayı denemelerini isteyin.",
+    "CheckSteps": "Kullanıcıların Cisco AnyConnect uygulamasını yeniden başlattıktan sonra VPN bağlantısını başarılı bir şekilde kurabildiğini doğrulayın.",
+    "Tags": "Cisco AnyConnect, VPN, timeout, zaman aşımı, bağlantı limiti, gateway, uzaktan erişim",
+    "SourceInc": "0000000087",
+    "CreatedBy": "DEVELOPER",
+    "CreatedOn": "20261004"
+  }
+]

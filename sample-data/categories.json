@@ -1,0 +1,72 @@
+[
+  {
+    "CategoryName": "Diğer",
+    "SupportGroup": "Application Support",
+    "IsActive": "X"
+  },
+  {
+    "CategoryName": "Donanım > Bilgisayar",
+    "SupportGroup": "Hardware",
+    "IsActive": "X"
+  },
+  {
+    "CategoryName": "Donanım > Yazıcı",
+    "SupportGroup": "Hardware",
+    "IsActive": "X"
+  },
+  {
+    "CategoryName": "Güvenlik > Erişim / Yetki",
+    "SupportGroup": "Security",
+    "IsActive": "X"
+  },
+  {
+    "CategoryName": "Network > LAN / Wi-Fi",
+    "SupportGroup": "Network",
+    "IsActive": "X"
+  },
+  {
+    "CategoryName": "Network > VPN",
+    "SupportGroup": "Network",
+    "IsActive": "X"
+  },
+  {
+    "CategoryName": "SAP > ABAP > Özel Geliştirme",
+    "SupportGroup": "SAP ABAP",
+    "IsActive": "X"
+  },
+  {
+    "CategoryName": "SAP > Basis > Yetki / Kullanıcı",
+    "SupportGroup": "SAP Basis",
+    "IsActive": "X"
+  },
+  {
+    "CategoryName": "SAP > FI > Muhasebe",
+    "SupportGroup": "SAP ABAP",
+    "IsActive": "X"
+  },
+  {
+    "CategoryName": "SAP > MM > Satınalma",
+    "SupportGroup": "SAP ABAP",
+    "IsActive": "X"
+  },
+  {
+    "CategoryName": "SAP > MM > Stok Yönetimi",
+    "SupportGroup": "SAP ABAP",
+    "IsActive": "X"
+  },
+  {
+    "CategoryName": "SAP > SD > Satış Siparişi",
+    "SupportGroup": "SAP ABAP",
+    "IsActive": "X"
+  },
+  {
+    "CategoryName": "Uygulama > Genel Hata",
+    "SupportGroup": "Application Support",
+    "IsActive": "X"
+  },
+  {
+    "CategoryName": "Veritabanı > Performans",
+    "SupportGroup": "Database",
+    "IsActive": "X"
+  }
+]

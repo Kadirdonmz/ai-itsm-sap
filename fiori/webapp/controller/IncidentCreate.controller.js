@@ -191,6 +191,8 @@ sap.ui.define([
                     requestType:    ai.requestType || "",
                     reason:         ai.reason || "",
                     categoryReason: ai.categoryReason || "",
+                    // Only logged when it was actually used as the description
+                    summary:        (ai.summary && !oData.Description) ? ai.summary : "",
                     sourceRef:      (ai.usedSources || []).map(function (s) { return s.id; }).join(",")
                 };
                 that._sAiModel = result.model || "";
@@ -220,6 +222,10 @@ sap.ui.define([
                 }
                 if (ai.impact && !oData.Impact && oMap[ai.impact]) {
                     oModel.setProperty("/Impact", oMap[ai.impact]);
+                }
+                // FR-04: a PDF-only request gets its description from the AI summary
+                if (ai.summary && !oData.Description) {
+                    oModel.setProperty("/Description", ai.summary);
                 }
                 oModel.setProperty("/AiUsed", true);
 
@@ -468,8 +474,10 @@ sap.ui.define([
                 { type: "IMPACT",       value: oAi.impact,       final: oNew.Impact,       reason: oAi.reason },
                 { type: "CATEGORY",     value: oAi.category,     final: oNew.Category,     reason: oAi.categoryReason },
                 { type: "SUPPORTGROUP", value: oAi.supportGroup, final: oNew.SupportGroup, reason: oAi.categoryReason },
-                { type: "REQUESTTYPE",  value: oAi.requestType,  final: oNew.RequestType,  reason: "" }
-            ].filter(function (s) { return s.value; });   // skip fields the AI left empty
+                { type: "REQUESTTYPE",  value: oAi.requestType,  final: oNew.RequestType,  reason: "" },
+                { type: "SUMMARY",      value: oAi.summary,      final: oNew.Description,  reason: "Dokümandan otomatik oluşturulan çağrı açıklaması" }
+            ].filter
+(function (s) { return s.value; });   // skip fields the AI left empty
 
             var oModel = this.getOwnerComponent().getModel("incidents");
             var sModelName = this._sAiModel;

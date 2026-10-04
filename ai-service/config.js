@@ -2,7 +2,7 @@
 
 module.exports = {
   // Generative model
-  MODEL: "gemini-3.6-flash",
+  MODEL: "gemini-3.5-flash",
 
   // Embeddings (768 dims: good quality, 4x smaller index than 3072)
   EMBEDDING_MODEL: "gemini-embedding-001",
