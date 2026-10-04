@@ -33,7 +33,7 @@ Onaylanan her alan, AI'ın önerdiği değer ve kullanıcının kararı ile birl
 
 ### A4. Uzman benzer çağrıları ve AI özetini görür (FR-07, FR-08)
 
-Çağrı detayında geçmiş benzer çağrılar embedding benzerliğine göre listelenir. Gösterilen yüzde, iki metnin vektörleri arasındaki gerçek kosinüs benzerliğidir.
+Çağrı detayında geçmiş benzer çağrılar embedding benzerliğine göre listelenir. Gösterilen yüzde, iki metnin vektörleri arasındaki gerçek kosinüs benzerliğidir. Her çağrının altında iki metnin ortak ifadeleri gerekçe olarak gösterilir (örneğin *Cisco, AnyConnect, VPN, Bağlantı, Hatası, Timeout*).
 
 **Özet Oluştur** ile uzman için özet, kullanıcının denediği adımlar, muhtemel nedenler ve sonraki aksiyonlar üretilir. Kullanıcının zaten denediği adımlar tekrar önerilmez.
 
@@ -43,7 +43,7 @@ Uzman çözümü yazıp çağrıyı **Resolved** yapar. Ardından **Bilgi Bankas
 
 ### A6. Döngü kapanır: yeni makale sonraki kullanıcıya önerilir
 
-Yeni bir kullanıcı aynı sorunu yazdığında asistan az önce oluşturulan makaleyi (KB-0000000005) kaynak olarak kullanır.
+Yeni bir kullanıcı aynı sorunu yazdığında asistan az önce oluşturulan makaleyi (KB-0000000005) kaynak olarak kullanır. Asistan ayrıca çözülmüş çağrının kendisini de kaynak olarak gösterir: *"Çözülmüş çağrı: Cisco AnyConnect VPN Bağlantı Hatası ve Timeout Sorunu (INC-0000000087)"*.
 
 ### A7. Tekrarlayan problem tespiti (FR-09)
 
@@ -77,6 +77,19 @@ Aynı ekranda geçmişte çözülmüş benzer talep ve nasıl çözüldüğü de
 
 AI ilk testi (limit altındaki siparişte uyarı **çıkmaması**) *Pozitif* olarak işaretlemişti. Uzman bunu *Negatif* olarak düzeltti. Her düzenleme test geçmişine yazılır.
 
+Test Planı bölümünün üstünde planın kökeni görünür:
+
+```
+AI test planı: 11 gereksinim, 10 test · 05.10.2026 00:53 · Model: gemini-3.5-flash · Kaynak: SAP_Gelistirme_Talebi_DEV-2026-0341.pdf
+Uzman onayı bekleniyor.
+```
+
+Uzman planı gözden geçirdikten sonra **Test Planını Onayla** der. Onay penceresi uzmanın AI planına yaptığı değişiklikleri sayar ve onay kim / ne zaman bilgisiyle kaydedilir:
+
+```
+Onaylayan: DEVELOPER · 05.10.2026 00:54 · 9 test onaylandı (0 düzenleme, 1 silme, 0 ekleme)
+```
+
 ### B5. Doküman revize edilir: gereksinim/test fark analizi (bonus)
 
 Rev2 PDF'i yüklenip **Revizyon Analizi** çalıştırılır. AI sadece gereksinim düzeyinde karşılaştırır:
@@ -95,7 +108,7 @@ Uzman sonuçları girer, bir teste açıklama ve ekran görüntüsü ekler. Kan�
 
 ### B7. Kritik test tamamlanmadan Resolved engellenir (FR-18, FR-19)
 
-E-posta testi sonuçlandırılmadan **Resolved** denendiğinde sistem kaydı engeller ve engelleyen maddeyi listeler. Çözüm metni girilmeden de Resolved yapılamaz (aynı kural backend'de `ZITSM 010` mesajıyla da uygulanır).
+E-posta testi sonuçlandırılmadan **Resolved** denendiğinde sistem kaydı engeller ve engelleyen maddeyi listeler. AI'ın ürettiği test planı onaylanmamışsa bu da engelleyen maddeler arasında gösterilir. Çözüm metni girilmeden de Resolved yapılamaz (aynı kural backend'de `ZITSM 010` mesajıyla da uygulanır).
 
 ### B8. Testler tamamlanır, release note üretilir (bonus)
 

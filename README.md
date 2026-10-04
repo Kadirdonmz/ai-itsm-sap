@@ -38,17 +38,17 @@ flowchart LR
 | Gereksinim | Karşılığı |
 |---|---|
 | FR-01 Sohbet asistanı | Bağlamı koruyan sohbet (`/chat`), mesajlar `ZITSM_CONV` / `ZITSM_MSG` tablolarında |
-| FR-02 Bilgi bankası destekli çözüm | RAG: en yakın KB makaleleri prompt'a eklenir, kullanılan kaynaklar ekranda gösterilir |
+| FR-02 Bilgi bankası destekli çözüm | RAG: en yakın KB makaleleri ve çözülmüş benzer çağrıların çözümleri prompt'a eklenir, kullanılan kaynaklar ekranda gösterilir |
 | FR-03 / FR-04 Sohbetten çağrı | Tek tıkla çağrıya dönüştürme; başlık, özet, etkilenen sistem, denenen adımlar sohbetten çıkarılır |
 | FR-05 Sınıflandırma ve yönlendirme | Kategori ve destek grubu sadece SAP'deki `ZITSM_CATEGORY` listesinden seçilebilir |
 | FR-06 Etki ve öncelik | Gerekçeli öncelik + etki önerisi (kullanıcı sayısı, iş kesintisi, workaround) |
-| FR-07 Benzer çağrılar | Embedding tabanlı semantik arama, çözüm şekliyle birlikte gösterim |
+| FR-07 Benzer çağrılar | Embedding tabanlı semantik arama; benzerlik skoru, ortak ifadeler (gerekçe) ve çözüm şekliyle gösterim |
 | FR-08 Uzman özeti | Özet, denenen adımlar, muhtemel nedenler, sonraki aksiyonlar |
 | FR-09 Tekrarlayan problem | Son 7 günde benzer çağrı sayısına göre Major Incident / Problem önerisi (LLM kullanmadan) |
 | FR-10 KB taslağı | Çözülmüş çağrıdan Problem > Neden > Çözüm > Kontrol formatında taslak, uzman onayıyla kayıt |
 | FR-11 – FR-14 Doküman → gereksinim → test | PDF'ten gereksinim çıkarımı (5 tip) ve test üretimi (pozitif, negatif, sınır, yetki, regresyon), REQ → TEST bağlantısı |
-| FR-15 – FR-17 Test yönetimi | Başarılı / Başarısız / Uygulanamaz sonucu, not, ekran görüntüsü kanıtı, düzenleme/silme/ekleme |
-| FR-18 / FR-19 Resolved kontrolü | Kritik testler başarılı değilse ve çözüm metni yoksa Resolved engellenir; engelleyen maddeler listelenir |
+| FR-15 – FR-17 Test yönetimi | Başarılı / Başarısız / Uygulanamaz sonucu, not, ekran görüntüsü kanıtı, düzenleme/silme/ekleme, AI test planının uzman onayı |
+| FR-18 / FR-19 Resolved kontrolü | Kritik testler başarılı değilse, AI test planı onaylanmadıysa veya çözüm metni yoksa Resolved engellenir; engelleyen maddeler listelenir |
 | FR-20 Test geçmişi | Her sonuç, sıfırlama, düzenleme ve silme `ZITSM_TEST_HIST` tablosuna yazılır |
 
 **Bonus özellikler:** Major Incident / Problem önerisi, SLA göstergesi, gerekçeli önceliklendirme, benzer taleplerden test önerisi, doküman revizyonu fark analizi, reddedilen öneriler için geri bildirim, release note üretimi, AI performans dashboard'u.

@@ -13,6 +13,8 @@ module.exports = {
   SIMILARITY_TOP_K: 5,
   SIMILARITY_MIN_SCORE: 0.70,
   RAG_MIN_SCORE: 0.55,
+  RAG_KB_TOP_K: 3,
+  RAG_INCIDENT_TOP_K: 2,   // resolved incidents also need SIMILARITY_MIN_SCORE
 
   // Recurring problem detection (FR-09)
   RECURRING_MIN_SCORE: 0.72,

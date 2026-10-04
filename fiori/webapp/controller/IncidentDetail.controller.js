@@ -46,6 +46,9 @@ sap.ui.define([
                 exists: false, text: "", decision: "", modelName: "", metaText: ""
             }), "relnote");
 
+            // FR-17 / traceability: AI test plan origin and expert approval
+            this.getView().setModel(new JSONModel({ exists: false, approved: false, text: "" }), "testplan");
+
             var oRouter = this.getOwnerComponent().getRouter();
             oRouter.getRoute("detail").attachPatternMatched(this._onObjectMatched, this);
 
@@ -63,6 +66,7 @@ sap.ui.define([
             this._loadAttachments();
             this._loadRequirements();
             this._loadTests();
+            this._loadTestPlanInfo();
             this._loadSimilarIncidents();
             this._loadReleaseNote();
         },
@@ -223,6 +227,8 @@ sap.ui.define([
                             Priority:   (r.meta && r.meta.priority) || "",
                             Score:      r.score,
                             ScorePct:   Math.round(r.score * 100) + "%",
+                            SharedTerms: (r.sharedTerms || []).join(", "),
+
                             // FR-07: show the resolution, or a status-based hint if none
                             Resolution: (r.meta && r.meta.resolution) ||
                                         ((r.meta && (r.meta.status === "R" || r.meta.status === "C"))
@@ -583,19 +589,20 @@ sap.ui.define([
                         that._callAiForTestSteps({
                             pdfBase64: oData.Content,
                             mimeType:  "application/pdf"
-                        });
+                        }, oPdf.Filename);
                     },
                     error: function () {
                         // Fall back to the description if the PDF can't be read
-                        that._callAiForTestSteps({ documentText: oIncident.Description });
+                        that._callAiForTestSteps({ documentText: oIncident.Description }, "Çağrı açıklaması");
                     }
                 });
             } else {
-                this._callAiForTestSteps({ documentText: oIncident.Description });
+                this._callAiForTestSteps({ documentText: oIncident.Description }, "Çağrı açıklaması");
             }
         },
 
-        _callAiForTestSteps: function (oRequestBody) {
+        // sSource: where the plan came from (PDF file name or description), kept for traceability
+        _callAiForTestSteps: function (oRequestBody, sSource) {
             var that = this;
 
             fetch(AI_SERVICE_URL, {
@@ -621,7 +628,9 @@ sap.ui.define([
 
                 // Requirements first so tests can link to their ReqId
                 that._saveRequirements(aReqs, function (oReqIdMap) {
-                    that._saveTestSteps(aSteps, oReqIdMap);
+                    that._saveTestSteps(aSteps, oReqIdMap, function (aTestIds) {
+                        that._logTestPlan(result.model, sSource, Object.keys(oReqIdMap).length, aTestIds);
+                    });
                 });
             })
             .catch(function () {
@@ -671,17 +680,18 @@ sap.ui.define([
         },
 
         // Saves tests one by one; parallel creates collided on test_id
-        _saveTestSteps: function (aSteps, oReqIdMap) {
+        _saveTestSteps: function (aSteps, oReqIdMap, fnDone) {
             var that = this;
             var oModel = this.getView().getModel("incidents");
             var iIndex = 0;
-            var iSaved = 0;
+            var aTestIds = [];
 
             function saveNext() {
                 if (iIndex >= aSteps.length) {
-                    MessageToast.show(iSaved + " test adımı oluşturuldu.");
+                    MessageToast.show(aTestIds.length + " test adımı oluşturuldu.");
                     that._loadRequirements();
                     that._loadTests();
+                    if (fnDone) { fnDone(aTestIds); }
                     return;
                 }
 
@@ -707,10 +717,11 @@ sap.ui.define([
                 };
 
                 oModel.create("/TestSet", oPayload, {
-                    success: function () {
-                        iSaved++;
+                    success: function (oData) {
+                        aTestIds.push(oData && oData.TestId);
                         saveNext();
                     },
+
                     error: function () {
                         saveNext();
                     }
@@ -718,6 +729,138 @@ sap.ui.define([
             }
 
             saveNext();
+        },
+
+        // --- AI test plan traceability and approval (FR-17) ---
+
+        // Logs what the AI generated, from which source and with which model.
+        // FinalValue keeps the generated test IDs so the review can tell what the expert changed.
+        _logTestPlan: function (sModel, sSource, iReqCount, aTestIds) {
+            var that = this;
+            var aIds = aTestIds.filter(Boolean).map(function (s) { return String(parseInt(s, 10)); });
+
+            this.getView().getModel("incidents").create("/SuggestionSet", {
+                IncidentNo: this._sIncidentNo,
+                SugType:    "TESTPLAN",
+                SugValue:   "AI test planı: " + iReqCount + " gereksinim, " + aIds.length + " test",
+                Reason:     ("Kaynak: " + (sSource || "-")).substring(0, 255),
+                SourceRef:  (sSource || "").substring(0, 100),
+                ModelName:  sModel || "",
+                Decision:   "",
+                FinalValue: ("T:" + aIds.join(",")).substring(0, 255),
+                UserFeedback: ""
+            }, {
+                success: function () { that._loadTestPlanInfo(); },
+                error: function () { console.warn("Could not log the AI test plan."); }
+            });
+        },
+
+        _loadTestPlanInfo: function () {
+            var that = this;
+            var oPlanModel = this.getView().getModel("testplan");
+
+            this.getView().getModel("incidents").read("/SuggestionSet", {
+                filters: [new Filter("IncidentNo", FilterOperator.EQ, this._sIncidentNo)],
+                success: function (oData) {
+                    var aRows = oData.results || [];
+                    var fnLast = function (sType) {
+                        return aRows.filter(function (r) { return r.SugType === sType; })
+                            .sort(function (a, b) { return a.SugId < b.SugId ? 1 : -1; })[0];
+                    };
+                    var oPlan = fnLast("TESTPLAN");
+                    var oReview = fnLast("TESTREVIEW");
+
+                    if (!oPlan) {
+                        oPlanModel.setData({ exists: false, approved: false, text: "" });
+                        return;
+                    }
+
+                    var bApproved = !!(oReview && oReview.SugId > oPlan.SugId);
+                    var sText = oPlan.SugValue + " · " + that._fmtStamp(oPlan.CreatedOn, oPlan.CreatedAt) +
+                        " · Model: " + (oPlan.ModelName || "-") + " · " + oPlan.Reason;
+                    sText += bApproved
+                        ? "\nOnaylayan: " + oReview.CreatedBy + " · " + that._fmtStamp(oReview.CreatedOn, oReview.CreatedAt) +
+                          " · " + oReview.SugValue + " (" + oReview.Reason + ")"
+                        : "\nUzman onayı bekleniyor. Testleri gözden geçirip düzenledikten sonra planı onaylayın.";
+
+                    oPlanModel.setData({ exists: true, approved: bApproved, text: sText, plan: oPlan });
+                },
+                error: function () {
+                    oPlanModel.setData({ exists: false, approved: false, text: "" });
+                }
+            });
+        },
+
+        // Approval is logged as a TESTREVIEW row: A if the AI plan was kept as is, M if the expert changed it
+        onApproveTestPlanPress: function () {
+            var that = this;
+            var oPlan = this.getView().getModel("testplan").getProperty("/plan");
+            if (!oPlan) { return; }
+
+            var aGenerated = (oPlan.FinalValue || "").replace(/^T:/, "").split(",").filter(Boolean);
+            var aCurrent = (this.getView().getModel("test").getProperty("/items") || [])
+                .map(function (t) { return String(parseInt(t.TestId, 10)); });
+
+            this.getView().getModel("incidents").read("/TestHistorySet", {
+                filters: [new Filter("IncidentNo", FilterOperator.EQ, this._sIncidentNo)],
+                success: function (oData) {
+                    var aHist = oData.results || [];
+                    var iEdits = aHist.filter(function (h) { return h.Action === "EDIT"; }).length;
+                    var iDeletes = aHist.filter(function (h) { return h.Action === "DELETE"; }).length;
+                    var iAdded = aCurrent.filter(function (id) { return aGenerated.indexOf(id) === -1; }).length;
+                    var sDecision = (iEdits + iDeletes + iAdded === 0) ? "A" : "M";
+                    var sChanges = iEdits + " düzenleme, " + iDeletes + " silme, " + iAdded + " ekleme";
+
+                    MessageBox.confirm(
+                        aCurrent.length + " test adımından oluşan plan onaylanacak.\n\n" +
+                        "AI'ın ürettiği plan: " + aGenerated.length + " test\nUzman değişiklikleri: " + sChanges +
+                        "\n\nOnay, kim ve ne zaman bilgisiyle kaydedilir. Devam edilsin mi?",
+                        {
+                            title: "Test Planını Onayla",
+                            onClose: function (sAction) {
+                                if (sAction !== MessageBox.Action.OK) { return; }
+                                that._saveTestPlanReview(oPlan, sDecision, aCurrent.length, sChanges);
+                            }
+                        }
+                    );
+                },
+                error: function () {
+                    MessageBox.error("Test geçmişi okunamadı, onay kaydedilemedi.");
+                }
+            });
+        },
+
+        _saveTestPlanReview: function (oPlan, sDecision, iTestCount, sChanges) {
+            var that = this;
+
+            this.getView().getModel("incidents").create("/SuggestionSet", {
+                IncidentNo: this._sIncidentNo,
+                SugType:    "TESTREVIEW",
+                SugValue:   iTestCount + " test onaylandı",
+                Reason:     sChanges,
+                SourceRef:  oPlan.SourceRef || "",
+                ModelName:  oPlan.ModelName || "",
+                Decision:   sDecision,
+                FinalValue: oPlan.SugValue || "",
+                UserFeedback: ""
+            }, {
+                success: function () {
+                    MessageToast.show("Test planı onaylandı.");
+                    that._loadTestPlanInfo();
+                },
+                error: function () {
+                    MessageBox.error("Onay kaydedilemedi.");
+                }
+            });
+        },
+
+        // "YYYYMMDD" + "HHMMSS" -> "DD.MM.YYYY HH:MM"
+        _fmtStamp: function (sDate, sTime) {
+            var d = sDate || "";
+            var t = sTime || "";
+            if (d.length !== 8) { return ""; }
+            return d.substring(6, 8) + "." + d.substring(4, 6) + "." + d.substring(0, 4) +
+                (t.length >= 4 ? " " + t.substring(0, 2) + ":" + t.substring(2, 4) : "");
         },
 
         // --- Test editing (FR-17) ---
@@ -2260,6 +2403,11 @@ sap.ui.define([
         _getResolveBlockers: function () {
             var aTests = this.getView().getModel("test").getProperty("/items") || [];
             var aBlockers = [];
+
+            var oPlan = this.getView().getModel("testplan").getData();
+            if (oPlan.exists && !oPlan.approved) {
+                aBlockers.push("• AI tarafından üretilen test planı henüz uzman tarafından onaylanmadı.");
+            }
 
             aTests.forEach(function (t, i) {
                 var sNo = "Test " + (i + 1);

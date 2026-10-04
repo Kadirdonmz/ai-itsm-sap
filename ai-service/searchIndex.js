@@ -137,6 +137,45 @@ async function rebuild(items) {
   return { indexed: index.length, failed: failed };
 }
 
+// Generic words that would make every pair look related
+const STOPWORDS = new Set([
+  "ile", "bir", "ben", "biz", "siz", "ama", "çok", "her", "hiç", "var", "yok", "ise", "şey",
+  "gün", "kez", "the", "and", "veya", "evet", "ayn", "aynı", "diğer", "tüm", "bazı",
+  "böyle", "şöyle", "öyle", "sadece", "hemen", "artık", "bile", "bugün", "akşam",
+  "için", "olan", "olarak", "ancak", "fakat", "sonra", "önce", "kadar", "değil", "daha",
+  "gibi", "veya", "ayrıca", "bunu", "buna", "şimdi", "zaman", "durum", "durumu", "şekilde",
+  "kullanıcı", "kullanıcının", "kullanıcılar", "asistan", "özet", "sohbet", "dökümü",
+  "bildirmektedir", "belirtilmiştir", "belirtmektedir", "etkilenen", "sistem", "denediği",
+  "adımlar", "lütfen", "merhaba", "teşekkürler", "misiniz", "musunuz", "olabilir", "edebilir",
+  "sorun", "sorunu", "sorunun", "çözüm", "çözüldü", "yapılamıyor", "alıyorum", "yaşıyor"
+]);
+
+function terms(text) {
+  const map = new Map();   // stem -> first surface form as written
+  (text || "")
+    .split(/[^0-9A-Za-zÇĞİÖŞÜçğıöşü_]+/)
+    .forEach(word => {
+      const w = word.toLocaleLowerCase("tr");
+      if (w.length < 3 || STOPWORDS.has(w) || /^\d+$/.test(w)) return;
+      const stem = w.substring(0, 5);   // rough match for Turkish suffixes
+      if (!map.has(stem)) map.set(stem, word);
+    });
+  return map;
+}
+
+/**
+ * Words two texts share, shown as a human-readable reason for a similarity match (FR-07).
+ * Deterministic and free; the score itself still comes from the embeddings.
+ */
+function sharedTerms(queryText, entryText, max) {
+  const q = terms(queryText);
+  const out = [];
+  terms(entryText).forEach((word, stem) => {
+    if (q.has(stem) && out.length < (max || 6)) out.push(word);
+  });
+  return out;
+}
+
 /**
  * Returns the entries most similar to the query text.
  * @param {object} opts { kind, topK, minScore, excludeId }
@@ -170,7 +209,8 @@ async function search(queryText, opts) {
     }))
     .filter(e => e.score >= minScore)
     .sort((a, b) => b.score - a.score)
-    .slice(0, topK);
+    .slice(0, topK)
+    .map(e => Object.assign(e, { sharedTerms: sharedTerms(queryText, e.title + " " + e.text) }));
 
   return scored;
 }
@@ -189,4 +229,4 @@ function stats() {
   };
 }
 
-module.exports = { upsert, remove, rebuild, search, stats };
+module.exports = { upsert, remove, rebuild, search, stats, sharedTerms };

@@ -151,12 +151,14 @@ sap.ui.define([
 
                 var sReply = result.data.reply;
 
-                // FR-02: show which KB articles the answer used
+                // FR-02: show which KB articles or resolved incidents the answer used
                 var sSources = (result.data.usedSources || []).map(function (s) {
-                    return (s.title || "") + " (" + (s.id || "") + ")";
+                    var sKind = (s.id || "").indexOf("INC-") === 0 ? "Çözülmüş çağrı" : "Bilgi bankası";
+                    return sKind + ": " + (s.title || "") + " (" + (s.id || "") + ")";
                 }).join("\n");
 
-                that._appendMessage("A", sReply, sSources ? "Bilgi bankası kaynağı:\n" + sSources : "");
+                that._appendMessage("A", sReply, sSources ? "Kaynak:\n" + sSources : "");
+
                 that._saveMessage("A", sReply);
                 that._focusInput();
             })

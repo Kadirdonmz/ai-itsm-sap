@@ -10,18 +10,18 @@ Bu doküman AI'ın uygulamanın hangi noktalarında kullanıldığını, prompt 
 | **Serbest metin değil, yapılandırılmış çıktı** | Tüm üretim çağrıları `responseMimeType: application/json` ile yapılır ve gelen JSON kodda doğrulanır. |
 | **Model sadece izin verilen listeden seçer** | Kategori, destek grubu, uzmanlık, gereksinim tipi ve test tipi önceden tanımlı listelerle karşılaştırılır. Liste dışı değerler atılır. |
 | **Sayılar ve ilişkiler koddan gelir** | Test sayıları, etkilenen testler, tekrar sayıları ve benzerlik skorları LLM'e sorulmaz, veriden hesaplanır. |
-| **Keyfi güven yüzdesi yok** | Sınıflandırma ve öncelik için yüzde yerine gerekçe metni gösterilir. Ekranda görünen tek yüzde, embedding vektörleri arasındaki gerçek kosinüs benzerliğidir. |
+| **Keyfi güven yüzdesi yok** | Sınıflandırma ve öncelik için yüzde yerine gerekçe metni gösterilir. Ekranda görünen tek yüzde, embedding vektörleri arasındaki gerçek kosinüs benzerliğidir; yanında iki metnin ortak ifadeleri gerekçe olarak gösterilir. |
 | **Her AI kararı izlenebilir** | Öneri, kullanıcının kararı, son değer, geri bildirim, kaynak ve model adı SAP'de saklanır. |
 
 ## 2. AI Kullanım Noktaları
 
 | Ekran / Adım | Endpoint | Girdi | Çıktı | Gereksinim |
 |---|---|---|---|---|
-| Sohbet | `POST /chat` | Sohbet geçmişi + ilgili KB makaleleri | Cevap metni, kullanılan KB kaynakları | FR-01, FR-02 |
+| Sohbet | `POST /chat` | Sohbet geçmişi + ilgili KB makaleleri + çözülmüş benzer çağrılar | Cevap metni, kullanılan kaynaklar | FR-01, FR-02 |
 | Sohbet → Çağrı Oluştur | `POST /analyze` | Sohbet dökümü | Başlık, özet, etkilenen sistem, denenen adımlar, kategori, destek grubu, öncelik, etki, tür | FR-03 – FR-06 |
 | Yeni Incident → AI ile Öner | `POST /analyze` | Açıklama metni ve/veya PDF | Aynı alanlar + çözüm önerileri + uzmanlık alanları | FR-04 – FR-06, FR-11 |
 | Detay → atama sonrası | `POST /analyze` | Talep PDF'i (yoksa açıklama) | Gereksinimler (5 tip) ve test senaryoları (5 tip, REQ bağlantılı) | FR-12 – FR-14 |
-| Detay → Benzer Geçmiş Çağrılar | `POST /similar` | Çağrı metni | En yakın çağrılar, skor, çözüm şekli | FR-07 |
+| Detay → Benzer Geçmiş Çağrılar | `POST /similar` | Çağrı metni | En yakın çağrılar, skor, ortak ifadeler, çözüm şekli | FR-07 |
 | Detay → tekrarlayan problem | `POST /recurring` | Çağrı metni | Son 7 gündeki benzer çağrı sayısı, Major Incident / Problem önerisi | FR-09 |
 | Detay → Özet Oluştur | `POST /summary` | Başlık + açıklama | Özet, denenen adımlar, muhtemel nedenler, sonraki aksiyonlar | FR-08 |
 | Detay → Bilgi Bankası Makalesi | `POST /kb-draft` | Çağrı, uzmanın çözüm metni, test notları | Problem, kök neden, çözüm, kontrol adımları, etiketler | FR-10 |
@@ -105,11 +105,14 @@ flowchart LR
 
 | Kullanım | Filtre | Eşik | Sonuç sayısı |
 |---|---|---|---|
-| RAG (sohbet ve analiz) | `kind = kb` | 0.55 | 3 |
+| RAG: bilgi bankası | `kind = kb` | 0.55 | 3 |
+| RAG: çözülmüş geçmiş çağrılar | `kind = incident`, durumu Resolved/Closed ve çözüm metni dolu | 0.70 | 2 |
 | Benzer çağrılar (FR-07) | `kind = incident`, kendisi hariç | 0.70 | 5 |
 | Tekrarlayan problem (FR-09) | `kind = incident`, son 7 gün | 0.72 | eşik: 3 çağrı |
 
-**RAG akışı:** kullanıcının yazdıkları sorgu olarak kullanılır. Eşiği geçen en yakın 3 KB makalesi `[KB-id] başlık + metin` biçiminde prompt'a eklenir ve modelden önce bu çözümleri kullanması, yararlandığı kaynağın kimliğini `usedSources` alanında belirtmesi istenir. Ekranda gösterilen kaynaklar, modelin beyanı ile gerçekten verilen kaynakların kesişimidir.
+**RAG akışı:** kullanıcının yazdıkları sorgu olarak kullanılır ve tek bir embedding çağrısıyla indekste aranır. Eşiği geçen en yakın 3 KB makalesi `[KB-id] başlık + metin`, çözülmüş en yakın 2 çağrı da `[INC-id] başlık + Çözüm: uzmanın çözüm metni` biçiminde prompt'a eklenir. Modelden önce bu çözümleri kullanması ve yararlandığı kaynağın kimliğini `usedSources` alanında belirtmesi istenir. Ekranda gösterilen kaynaklar ("Bilgi bankası: …", "Çözülmüş çağrı: …"), modelin beyanı ile gerçekten verilen kaynakların kesişimidir.
+
+**Benzerlik gerekçesi (FR-07):** her benzer çağrı için iki metinde ortak geçen anlamlı kelimeler (genel kelimeler filtrelenir, Türkçe ekler için kelimenin ilk 5 harfi karşılaştırılır) "Ortak ifadeler" olarak gösterilir. Bu gerekçe LLM'e sorulmaz, deterministik olarak hesaplanır ve kota harcamaz.
 
 **Tekrarlayan problem (FR-09):** LLM çağrısı yapılmaz. Son 7 gün içinde açılmış, benzerliği 0.72'nin üstünde en az 3 çağrı varsa uyarı verilir. Bunların en az 3'ü hâlâ açıksa **Major Incident**, değilse **Problem kaydı** önerilir. Açılış tarihi bilinmeyen kayıtlar, yakın tarihli oldukları kanıtlanamadığı için sayılmaz.
 
@@ -121,7 +124,7 @@ Her AI önerisi `ZITSM_AISUG` tablosuna şu bilgilerle yazılır:
 
 | Alan | İçerik |
 |---|---|
-| `SUG_TYPE` | TITLE, PRIORITY, IMPACT, CATEGORY, SUPPORTGROUP, REQUESTTYPE, SUMMARY, REVISION |
+| `SUG_TYPE` | TITLE, PRIORITY, IMPACT, CATEGORY, SUPPORTGROUP, REQUESTTYPE, SUMMARY, REVISION, TESTPLAN, TESTREVIEW |
 | `SUG_VALUE` / `REASON` | AI'ın önerdiği değer ve gerekçesi |
 | `SOURCE_REF` | Yararlanılan KB kayıtları |
 | `MODEL_NAME` | Öneriyi üreten model |
@@ -131,6 +134,8 @@ Her AI önerisi `ZITSM_AISUG` tablosuna şu bilgilerle yazılır:
 | `CREATED_BY / ON / AT` | Kim, ne zaman |
 
 Karar, kullanıcıya sorulmadan otomatik hesaplanır: kaydedilen değer AI'ın önerisiyle aynıysa A, boşsa R, farklıysa M.
+
+**AI test planı (FR-17):** AI gereksinim ve test ürettiğinde bir `TESTPLAN` kaydı yazılır: ne zaman, hangi model, hangi kaynaktan (PDF adı veya açıklama) ve hangi test numaraları üretildi. Uzman testleri gözden geçirip **Test Planını Onayla** dediğinde bir `TESTREVIEW` kaydı oluşur: onaylayan, tarih ve uzmanın plana yaptığı değişiklikler (düzenleme, silme, ekleme sayısı). Plan değiştirilmeden onaylandıysa karar A, değiştirildiyse M olur. AI'ın ürettiği plan onaylanmadan çağrı Resolved yapılamaz.
 
 Release note'lar `ZITSM_RELNOTE` tablosunda onaylayan kişi, tarih, karar ve model adıyla saklanır. Test adımlarındaki her sonuç, sıfırlama, düzenleme ve silme `ZITSM_TEST_HIST` tablosuna yazılır. Revizyon analizinin uygulanması da `REVISION` tipinde bir AI önerisi olarak kaydedilir.
 

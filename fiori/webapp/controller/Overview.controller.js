@@ -14,7 +14,8 @@ sap.ui.define([
         REQUESTTYPE: "Talep Türü",
         SUMMARY: "Çağrı Özeti",
         IMPACT: "Etki",
-        REVISION: "Revizyon"
+        REVISION: "Revizyon",
+        TESTREVIEW: "Test Planı"
     };
 
     return Controller.extend("zitsm.controller.Overview", {
@@ -182,7 +183,9 @@ sap.ui.define([
             // AI suggestions: acceptance rate and decisions by type
             oModel.read("/SuggestionSet", {
                 success: function (oData) {
-                    var aSug = oData.results || [];
+                    // TESTPLAN rows only log what the AI generated; the decision is in TESTREVIEW
+                    var aSug = (oData.results || []).filter(function (s) { return s.SugType !== "TESTPLAN"; });
+
                     var iA = 0;
                     var oByType = {};
 

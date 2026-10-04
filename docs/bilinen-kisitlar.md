@@ -13,6 +13,8 @@
 | Model kotası | Ücretsiz Gemini kotası dakikalık ve günlük sınırlıdır. Yoğunlukta (503) model `config.js` üzerinden değiştirilebilir. |
 | Test geçmişi | Tanım düzenlemesinde geçmişe yeni test metni yazılır; tip, kritiklik veya gereksinim değişikliği ayrıca gösterilmez. |
 | Revizyon sonrası test metinleri | Revizyon analizi etkilenen testleri işaretler ve sonuçlarını sıfırlar, ancak test metinlerindeki eski değerleri (örneğin eski limit tutarı) uzmanın güncellemesi gerekir. |
+| Test planı onayı | Onay test başına değil plan düzeyindedir. Onaydan sonra yapılan düzenlemeler test geçmişinde görünür ama yeni bir onay istemez. |
+| Benzerlik gerekçesi | Ortak ifadeler basit bir kök eşleştirmesiyle (kelimenin ilk 5 harfi) bulunur; eş anlamlı kelimeleri yakalamaz. Asıl benzerlik skoru embedding'den gelir. |
 | `ZITSM_AISUG` | Tablo istemci (MANDT) alanı içermez. |
 | Dağıtım | AI servisi ve Fiori uygulaması yerel geliştirme ortamında çalışır (`localhost`). AI servisinin adresi controller'larda sabittir. |
 

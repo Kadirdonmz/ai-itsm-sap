@@ -266,10 +266,12 @@ sap.ui.define([
             // Show which KB articles the suggestion is based on
             var sSources = "";
             if (this._aUsedSources && this._aUsedSources.length > 0) {
-                sSources = "\n\n📚 Bu öneriler kurum bilgi bankasındaki şu kayda dayanmaktadır:\n" +
+                sSources = "\n\n📚 Bu öneriler şu kayıtlara dayanmaktadır:\n" +
                     this._aUsedSources.map(function (s) {
-                        return "• " + s.title;
+                        var sKind = (s.id || "").indexOf("INC-") === 0 ? "Çözülmüş çağrı" : "Bilgi bankası";
+                        return "• " + sKind + ": " + s.title + " (" + s.id + ")";
                     }).join("\n");
+
             }
 
             MessageBox.show(

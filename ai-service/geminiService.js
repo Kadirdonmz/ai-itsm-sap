@@ -98,11 +98,11 @@ function buildChatPrompt(history, kbContext) {
 Kurallar:
 - Türkçe, kısa ve anlaşılır cevap ver (en fazla birkaç cümle).
 - Eksik bilgi varsa NET bir soru sor (örn: hangi sistem, ne zamandır sürüyor, kaç kişiyi etkiliyor).
-- Yeterli bilgi varsa ve BİLGİ BANKASI KAYITLARI sana verildiyse, ÖNCE oradaki çözümleri kullanıcıya öner (sohbet havasında, madde madde değil).
+- Yeterli bilgi varsa ve BİLGİ BANKASI KAYITLARI veya ÇÖZÜLMÜŞ GEÇMİŞ ÇAĞRILAR sana verildiyse, ÖNCE oradaki çözümleri kullanıcıya öner (sohbet havasında, madde madde değil).
 - Bilgi bankasında uygun kayıt yoksa genel ITSM bilginle mantıklı bir öneri sun, ama teknik detay uydurma.
 - Çağrıyı sen açamazsın. Sorun çözülemiyorsa veya uzman gerekiyorsa kullanıcıya ekrandaki "Çağrı Oluştur" butonuna basmasını öner; "talep oluşturuyorum" gibi işlemi kendin yapıyormuş gibi ifadeler kullanma.
 
-- SADECE geçerli bir JSON döndür: {"reply": "kullanıcıya gösterilecek cevap metni", "usedSources": ["KB-..."]}. "usedSources": cevabında GERÇEKTEN yararlandığın bilgi bankası kayıtlarının id'leri (örn. "KB-0000000003"); hiçbirinden yararlanmadıysan boş dizi []. JSON dışında hiçbir şey yazma.
+- SADECE geçerli bir JSON döndür: {"reply": "kullanıcıya gösterilecek cevap metni", "usedSources": ["KB-..."]}. "usedSources": cevabında GERÇEKTEN yararlandığın kayıtların id'leri (örn. "KB-0000000003" veya "INC-0000000087"); hiçbirinden yararlanmadıysan boş dizi []. JSON dışında hiçbir şey yazma.
 ${kbContext || ""}
 Sohbet geçmişi:
 """
@@ -129,8 +129,8 @@ Kurallar:
 - "summary": sorunun/talebin 2-3 cümlelik, çağrı açıklaması olarak kullanılabilecek özeti (Türkçe, üçüncü şahıs: "Kullanıcı ... bildirmektedir"). Metin yetersizse "".
 - "affectedSystem": etkilenen sistem, uygulama veya işlem (örn. "Cisco AnyConnect VPN", "SAP MM – ME21N"). Metinde geçmiyorsa "" döndür, UYDURMA.
 - "triedSteps": kullanıcının sorunu çözmek için ZATEN denediğini açıkça belirttiği adımlar (string dizisi). Metin bir kullanıcı–asistan sohbetiyse, asistanın ÖNERDİĞİ ama kullanıcının yaptığını söylemediği adımları EKLEME. Yoksa [].
-- "suggestedSolutions": SADECE requestType "incident" ise, kullanıcının kendi deneyebileceği somut çözüm adımları (string dizisi). requestType "request" ise boş dizi [] döndür. Sana BİLGİ BANKASI KAYITLARI verildiyse ÖNCE onlardaki çözümleri kullan; kendi genel bilgini ancak bilgi bankası yetersizse ekle.
-- "usedSources": çözüm önerirken yararlandığın bilgi bankası kayıtlarının id'leri (string dizisi, örn: ["KB-0000000001"]). Bilgi bankasından yararlanmadıysan [].
+- "suggestedSolutions": SADECE requestType "incident" ise, kullanıcının kendi deneyebileceği somut çözüm adımları (string dizisi). requestType "request" ise boş dizi [] döndür. Sana BİLGİ BANKASI KAYITLARI veya ÇÖZÜLMÜŞ GEÇMİŞ ÇAĞRILAR verildiyse ÖNCE onlardaki çözümleri kullan; kendi genel bilgini ancak bunlar yetersizse ekle.
+- "usedSources": çözüm önerirken yararlandığın kayıtların id'leri (string dizisi, örn: ["KB-0000000001", "INC-0000000087"]). Hiçbirinden yararlanmadıysan [].
 - "expertise": problemi çözebilecek uzmanlık alanları. SADECE şu listeden seç, UYDURMA: ${JSON.stringify(config.ALLOWED_EXPERTISE)}. Uygun yoksa [].
 - "category": çağrının kategorisi ("Ana > Alt > Detay" formatında). SADECE şu listeden seç, UYDURMA (liste kurumun yönlendirme tablosundandır):
 ${catLines}
@@ -161,48 +161,61 @@ function maskPII(text) {
     .replace(/(\+90|0)?[\s]?\(?\d{3}\)?[\s]?\d{3}[\s]?\d{2}[\s]?\d{2}\b/g, "[TELEFON]");
 }
 
-// RAG retrieval: finds the KB articles closest to the text and formats them as prompt context
+// RAG retrieval (FR-02): KB articles plus resolved past incidents, formatted as prompt context
 async function buildKbContext(queryText) {
+  const empty = { contextText: "", sources: [] };
   if (!queryText || !queryText.trim()) {
-    return { contextText: "", sources: [] };
+    return empty;
   }
 
   let hits = [];
   try {
-    hits = await searchIndex.search(queryText, {
-      kind: "kb",
-      topK: 3,
-      minScore: config.RAG_MIN_SCORE
-    });
+    // One embedding call for both kinds; split afterwards
+    hits = await searchIndex.search(queryText, { topK: 20, minScore: config.RAG_MIN_SCORE });
   } catch (err) {
-    // Analysis should still work without KB context
-    console.warn("Could not load KB context:", err.message);
-    return { contextText: "", sources: [] };
+    // Analysis should still work without context
+    console.warn("Could not load RAG context:", err.message);
+    return empty;
   }
 
-  if (hits.length === 0) {
-    return { contextText: "", sources: [] };
+  const kbHits = hits.filter(h => h.kind === "kb").slice(0, config.RAG_KB_TOP_K);
+
+  // Only incidents with a recorded resolution, held to the stricter similarity threshold
+  const incHits = hits
+    .filter(h => h.kind === "incident" &&
+                 h.score >= config.SIMILARITY_MIN_SCORE &&
+                 h.meta && (h.meta.status === "R" || h.meta.status === "C") &&
+                 (h.meta.resolution || "").trim())
+    .slice(0, config.RAG_INCIDENT_TOP_K);
+
+  if (kbHits.length === 0 && incHits.length === 0) {
+    return empty;
   }
 
-  const blocks = hits.map(h =>
-    `[KB-${h.id}] ${h.title}\n${h.text}`
-  ).join("\n\n");
-
-  const contextText = `
+  let contextText = "";
+  if (kbHits.length > 0) {
+    contextText += `
 BİLGİ BANKASI KAYITLARI (kurum içi çözüm arşivinden, anlam benzerliğine göre bulundu):
 """
-${blocks}
+${kbHits.map(h => `[KB-${h.id}] ${h.title}\n${maskPII(h.text)}`).join("\n\n")}
 """
-Bu kayıtlar kurumun geçmiş çözümleridir. Çözüm önerirken ÖNCE bunlardan yararlan ve yararlandığın kaydın id'sini "usedSources" alanında belirt.
+`;
+  }
+  if (incHits.length > 0) {
+    contextText += `
+ÇÖZÜLMÜŞ GEÇMİŞ ÇAĞRILAR (benzer sorunların uzman tarafından girilen çözümleri):
+"""
+${incHits.map(h => `[INC-${h.id}] ${h.title}\nÇözüm: ${maskPII(h.meta.resolution)}`).join("\n\n")}
+"""
+`;
+  }
+  contextText += `Bu kayıtlar kurumun geçmiş çözümleridir. Çözüm önerirken ÖNCE bunlardan yararlan ve yararlandığın kaydın id'sini (KB-... veya INC-...) "usedSources" alanında belirt.
 `;
 
   return {
     contextText: contextText,
-    sources: hits.map(h => ({
-      id: "KB-" + h.id,
-      title: h.title,
-      score: h.score
-    }))
+    sources: kbHits.map(h => ({ id: "KB-" + h.id, title: h.title, score: h.score }))
+      .concat(incHits.map(h => ({ id: "INC-" + h.id, title: h.title, score: h.score })))
   };
 }
 
@@ -460,7 +473,7 @@ async function analyze({ documentText, pdfBase64, mimeType }) {
     kbContext = ctx.contextText;
     kbSources = ctx.sources;
     if (kbSources.length > 0) {
-      console.log(`KB context: ${kbSources.length} articles found.`);
+      console.log(`RAG context: ${kbSources.length} sources found.`);
     }
   }
 

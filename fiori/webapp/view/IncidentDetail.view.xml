@@ -315,7 +315,7 @@
                     visible="{similar>/recurringVisible}"
                     class="sapUiSmallMarginBottom"/>
                 <Toolbar>
-                    <Text text="Anlam benzerliğine göre bulunan geçmiş çağrılar ve nasıl çözüldükleri. Benzerlik, metinlerin AI embedding vektörleri arasındaki kosinüs benzerliğidir (LLM tahmini değildir)."/>
+                    <Text text="Anlam benzerliğine göre bulunan geçmiş çağrılar ve nasıl çözüldükleri. Benzerlik, metinlerin AI embedding vektörleri arasındaki kosinüs benzerliğidir (LLM tahmini değildir); başlığın altında iki metnin ortak ifadeleri gerekçe olarak gösterilir."/>
                     <ToolbarSpacer/>
                     <BusyIndicator visible="{similar>/loading}" size="1rem"/>
                 </Toolbar>
@@ -340,7 +340,14 @@
                         <ColumnListItem type="Navigation" press="onSimilarPress">
                             <cells>
                                 <Text text="{similar>IncidentNo}"/>
-                                <Text text="{similar>Title}"/>
+                                <VBox>
+                                    <Text text="{similar>Title}"/>
+                                    <Text
+                                        text="Ortak ifadeler: {similar>SharedTerms}"
+                                        visible="{= !!${similar>SharedTerms} }"
+                                        class="testExpected"/>
+                                </VBox>
+
                                 <ObjectStatus
                                     text="{path: 'similar>Priority', formatter: '.formatter.priorityText'}"
                                     state="{path: 'similar>Priority', formatter: '.formatter.priorityState'}"/>
@@ -390,6 +397,13 @@
                     <Text text="Uzman, talebi Resolved durumuna almadan önce testleri sonuçlandırmalıdır. Başarısız/uygulanamaz testler için açıklama zorunludur."/>
                     <ToolbarSpacer/>
                     <Button
+                        text="Test Planını Onayla"
+                        icon="sap-icon://approvals"
+                        tooltip="AI'ın ürettiği ve sizin gözden geçirdiğiniz test planını onaylar (FR-17)"
+                        visible="{= ${testplan>/exists} &amp;&amp; !${testplan>/approved} }"
+                        enabled="{= ${incidents>Status} !== 'C' &amp;&amp; ${incidents>Status} !== 'R' }"
+                        press="onApproveTestPlanPress"/>
+                    <Button
                         text="Test Geçmişi"
                         icon="sap-icon://history"
                         tooltip="Test sonuçlarındaki tüm değişikliklerin kaydı"
@@ -412,7 +426,15 @@
                         press="onSaveTestsPress"/>
                 </Toolbar>
 
+                <MessageStrip
+                    text="{testplan>/text}"
+                    type="{= ${testplan>/approved} ? 'Success' : 'Warning'}"
+                    showIcon="true"
+                    visible="{testplan>/exists}"
+                    class="sapUiSmallMargin"/>
+
                 <Table id="testTable" items="{test>/items}" noDataText="Bu talep için test adımı oluşturulmamış.">
+
                     <columns>
                         <Column><Text text="Test Adımı"/></Column>
                         <Column width="7rem" minScreenWidth="Desktop" demandPopin="true" popinDisplay="Inline">
